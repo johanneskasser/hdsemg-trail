@@ -564,19 +564,57 @@ class SessionApp(tk.Tk):
         # LabelFrame für diese wiederholbare Messung
         frame = ttk.LabelFrame(self.step_fields_frame, text=field_cfg.label, padding=10)
         frame.grid(row=start_row, column=0, columnspan=4, sticky="ew", pady=8)
-        frame.columnconfigure(1, weight=1)
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
 
         # Hole existierende Versuche
         attempts = self.current_step_repeated_measurements.get(field_cfg.field_id, [])
 
-        # Container für alle Versuche
-        attempts_frame = ttk.Frame(frame)
-        attempts_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        # Container mit Canvas und Scrollbar für scrollbare Versuche
+        canvas_container = ttk.Frame(frame)
+        canvas_container.grid(row=0, column=0, columnspan=2, sticky="nsew")
+        canvas_container.columnconfigure(0, weight=1)
+        canvas_container.rowconfigure(0, weight=1)
+
+        # Canvas mit maximaler Höhe
+        canvas = tk.Canvas(canvas_container, height=300, highlightthickness=0)
+        canvas.grid(row=0, column=0, sticky="nsew")
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Frame für alle Versuche im Canvas
+        attempts_frame = ttk.Frame(canvas)
+        canvas_window = canvas.create_window((0, 0), window=attempts_frame, anchor="nw")
         attempts_frame.columnconfigure(1, weight=1)
 
         # Zeige jeden Versuch
         for attempt_idx, attempt_data in enumerate(attempts):
             self._render_single_attempt(attempts_frame, field_cfg, attempt_idx, attempt_data)
+
+        # Update scroll region und Canvas-Breite
+        def _configure_canvas_scroll(event=None):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Canvas-Breite an Frame-Breite anpassen
+            canvas.itemconfig(canvas_window, width=canvas.winfo_width())
+
+        attempts_frame.bind("<Configure>", _configure_canvas_scroll)
+        canvas.bind("<Configure>", _configure_canvas_scroll)
+
+        # Mausrad-Scrolling (nur wenn Maus über Canvas)
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        def _on_enter(event):
+            canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        def _on_leave(event):
+            canvas.unbind_all("<MouseWheel>")
+
+        canvas.bind("<Enter>", _on_enter)
+        canvas.bind("<Leave>", _on_leave)
 
         # "Versuch hinzufügen" Button
         add_btn = ttk.Button(
@@ -910,10 +948,10 @@ class SessionApp(tk.Tk):
             # Restore repeated measurements
             self.current_step_repeated_measurements = {k: [dict(attempt) for attempt in v] for k, v in existing.repeated_measurements.items()}  # Deep copy
         else:
-            self.notes_text.delete("1.0", "end")
-            self.current_step_otbiolab_paths = []
-            self.current_step_field_otbiolab_files = {}
-            self.current_step_repeated_measurements = {}
+            # Wenn wir zu einem neuen Schritt gewechselt sind (erkennbar an leeren Dictionaries), lösche Notizen
+            # Beim UI-Rebuild während der Bearbeitung bleiben die Werte erhalten
+            if not self.current_step_repeated_measurements and not self.current_step_field_otbiolab_files and not self.current_step_otbiolab_paths:
+                self.notes_text.delete("1.0", "end")
 
         placeholder = step.notes_placeholder or "Notizen zur Messung"
         self.notes_placeholder_var.set(placeholder)
