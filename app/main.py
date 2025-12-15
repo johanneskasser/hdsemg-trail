@@ -483,9 +483,41 @@ class SessionApp(tk.Tk):
         self.fields_group = ttk.LabelFrame(frame, text="Messwerte")
         self.fields_group.grid(row=4, column=0, sticky="nsew", pady=(18, 12))
         self.fields_group.columnconfigure(0, weight=1)
-        self.step_fields_frame = ttk.Frame(self.fields_group)
-        self.step_fields_frame.grid(row=0, column=0, sticky="nsew")
+        self.fields_group.rowconfigure(0, weight=1)
+
+        # Canvas und Scrollbar für scrollbare Messwerte
+        self.fields_canvas = tk.Canvas(self.fields_group, highlightthickness=0, height=400)
+        self.fields_canvas.grid(row=0, column=0, sticky="nsew")
+
+        self.fields_scrollbar = ttk.Scrollbar(self.fields_group, orient="vertical", command=self.fields_canvas.yview)
+        self.fields_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.fields_canvas.configure(yscrollcommand=self.fields_scrollbar.set)
+
+        # Frame für Felder im Canvas
+        self.step_fields_frame = ttk.Frame(self.fields_canvas)
+        self.fields_canvas_window = self.fields_canvas.create_window((0, 0), window=self.step_fields_frame, anchor="nw")
         self.step_fields_frame.columnconfigure(1, weight=1)
+
+        # Update scroll region wenn Frame sich ändert
+        def _update_fields_scroll(event=None):
+            self.fields_canvas.configure(scrollregion=self.fields_canvas.bbox("all"))
+            self.fields_canvas.itemconfig(self.fields_canvas_window, width=self.fields_canvas.winfo_width())
+
+        self.step_fields_frame.bind("<Configure>", _update_fields_scroll)
+        self.fields_canvas.bind("<Configure>", _update_fields_scroll)
+
+        # Mausrad-Scrolling
+        def _on_fields_mousewheel(event):
+            self.fields_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        def _on_fields_enter(event):
+            self.fields_canvas.bind_all("<MouseWheel>", _on_fields_mousewheel)
+
+        def _on_fields_leave(event):
+            self.fields_canvas.unbind_all("<MouseWheel>")
+
+        self.fields_canvas.bind("<Enter>", _on_fields_enter)
+        self.fields_canvas.bind("<Leave>", _on_fields_leave)
 
         notes_container = ttk.Frame(frame)
         notes_container.grid(row=5, column=0, sticky="nsew")
@@ -564,57 +596,19 @@ class SessionApp(tk.Tk):
         # LabelFrame für diese wiederholbare Messung
         frame = ttk.LabelFrame(self.step_fields_frame, text=field_cfg.label, padding=10)
         frame.grid(row=start_row, column=0, columnspan=4, sticky="ew", pady=8)
-        frame.columnconfigure(0, weight=1)
-        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
 
         # Hole existierende Versuche
         attempts = self.current_step_repeated_measurements.get(field_cfg.field_id, [])
 
-        # Container mit Canvas und Scrollbar für scrollbare Versuche
-        canvas_container = ttk.Frame(frame)
-        canvas_container.grid(row=0, column=0, columnspan=2, sticky="nsew")
-        canvas_container.columnconfigure(0, weight=1)
-        canvas_container.rowconfigure(0, weight=1)
-
-        # Canvas mit maximaler Höhe
-        canvas = tk.Canvas(canvas_container, height=300, highlightthickness=0)
-        canvas.grid(row=0, column=0, sticky="nsew")
-
-        # Scrollbar
-        scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=canvas.yview)
-        scrollbar.grid(row=0, column=1, sticky="ns")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        # Frame für alle Versuche im Canvas
-        attempts_frame = ttk.Frame(canvas)
-        canvas_window = canvas.create_window((0, 0), window=attempts_frame, anchor="nw")
+        # Container für alle Versuche
+        attempts_frame = ttk.Frame(frame)
+        attempts_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
         attempts_frame.columnconfigure(1, weight=1)
 
         # Zeige jeden Versuch
         for attempt_idx, attempt_data in enumerate(attempts):
             self._render_single_attempt(attempts_frame, field_cfg, attempt_idx, attempt_data)
-
-        # Update scroll region und Canvas-Breite
-        def _configure_canvas_scroll(event=None):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            # Canvas-Breite an Frame-Breite anpassen
-            canvas.itemconfig(canvas_window, width=canvas.winfo_width())
-
-        attempts_frame.bind("<Configure>", _configure_canvas_scroll)
-        canvas.bind("<Configure>", _configure_canvas_scroll)
-
-        # Mausrad-Scrolling (nur wenn Maus über Canvas)
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-        def _on_enter(event):
-            canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-        def _on_leave(event):
-            canvas.unbind_all("<MouseWheel>")
-
-        canvas.bind("<Enter>", _on_enter)
-        canvas.bind("<Leave>", _on_leave)
 
         # "Versuch hinzufügen" Button
         add_btn = ttk.Button(
@@ -677,6 +671,11 @@ class SessionApp(tk.Tk):
         """Fügt einen neuen Versuch hinzu und aktualisiert die UI."""
         if field_cfg.field_id not in self.current_step_repeated_measurements:
             self.current_step_repeated_measurements[field_cfg.field_id] = []
+
+        # Speichere aktuelle Werte aller Felder vor UI-Rebuild
+        if self.declaration:
+            step = self.declaration.steps[self.current_step_index]
+            self._save_repeated_measurement_values(step)
 
         # Neuen leeren Versuch hinzufügen
         new_attempt = {}

@@ -22,7 +22,7 @@
       "label": "Session-Typ",
       "type": "choice",
       "required": true,
-      "options": ["Day 1 - Familiarization", "Day 2 - Intervention"]
+      "options": ["Day 2 - Intervention"]
     },
     {
       "id": "randomization",
