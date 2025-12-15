@@ -90,26 +90,28 @@
       "title": "MVC (Baseline)",
       "description": "Maximale willkürliche Kontraktion - Best of Three zur Feststellung der Baseline-Maximalkraft",
       "expected_duration_seconds": 600,
-      "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_BASELINE.otb4",
       "notes_placeholder": "MVC-Werte, Probanden-Verständnis, Ausführungsqualität, Besonderheiten",
       "fields": [
         {
           "id": "mvc_trial1",
           "label": "MVC Versuch 1 (Nm)",
           "type": "float",
-          "required": true
+          "required": true,
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_BASELINE_Trial1.otb4"
         },
         {
           "id": "mvc_trial2",
           "label": "MVC Versuch 2 (Nm)",
           "type": "float",
-          "required": true
+          "required": true,
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_BASELINE_Trial2.otb4"
         },
         {
           "id": "mvc_trial3",
           "label": "MVC Versuch 3 (Nm)",
           "type": "float",
-          "required": true
+          "required": true,
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_BASELINE_Trial3.otb4"
         },
         {
           "id": "mvc_best",
@@ -124,29 +126,51 @@
       "title": "Force Tracking (Pyramide & Trapezoid)",
       "description": "Familiarisierung mit Force-Tracking Aufgaben: Pyramide und Trapezoid (30-40% MVC)",
       "expected_duration_seconds": 900,
-      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_FAM.otb4",
       "notes_placeholder": "Qualität des Force-Tracking, Verständnis der Aufgaben, Schwierigkeiten, Signal-Qualität",
       "fields": [
         {
-          "id": "pyramid_completed",
-          "label": "Pyramid abgeschlossen",
-          "type": "choice",
-          "required": true,
-          "options": ["Ja", "Nein", "Teilweise"]
+          "id": "pyramid_tracking",
+          "label": "Pyramid Tracking",
+          "type": "repeated_measurement",
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_FAM_Pyramid_{attempt_number}.otb4",
+          "repeated_fields": [
+            {
+              "id": "quality",
+              "label": "Tracking-Qualität",
+              "type": "choice",
+              "required": false,
+              "options": ["Sehr gut", "Gut", "Befriedigend", "Ausreichend", "Unzureichend"]
+            },
+            {
+              "id": "notes",
+              "label": "Notizen",
+              "type": "multiline",
+              "required": false,
+              "placeholder": "Besonderheiten bei diesem Versuch"
+            }
+          ]
         },
         {
-          "id": "trap_completed",
-          "label": "Trapezoid abgeschlossen",
-          "type": "choice",
-          "required": true,
-          "options": ["Ja", "Nein", "Teilweise"]
-        },
-        {
-          "id": "tracking_quality",
-          "label": "Tracking-Qualität (subjektiv)",
-          "type": "choice",
-          "required": false,
-          "options": ["Sehr gut", "Gut", "Befriedigend", "Ausreichend", "Unzureichend"]
+          "id": "trap_tracking",
+          "label": "Trapezoid Tracking",
+          "type": "repeated_measurement",
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_FAM_Trap_{attempt_number}.otb4",
+          "repeated_fields": [
+            {
+              "id": "quality",
+              "label": "Tracking-Qualität",
+              "type": "choice",
+              "required": false,
+              "options": ["Sehr gut", "Gut", "Befriedigend", "Ausreichend", "Unzureichend"]
+            },
+            {
+              "id": "notes",
+              "label": "Notizen",
+              "type": "multiline",
+              "required": false,
+              "placeholder": "Besonderheiten bei diesem Versuch"
+            }
+          ]
         }
       ]
     },

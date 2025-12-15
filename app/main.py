@@ -32,6 +32,9 @@ class FieldConfig:
     placeholder: Optional[str] = None
     options: List[str] = field(default_factory=list)
     use_from_ref: bool = False  # Wert aus Referenz-File übernehmen?
+    otbiolab_template: Optional[str] = None  # Dateinamen-Template für dieses Feld
+    repeated_measurement: bool = False  # Kann diese Messung wiederholt werden?
+    repeated_fields: List['FieldConfig'] = field(default_factory=list)  # Sub-Felder für jede Wiederholung
 
 
 @dataclass
@@ -61,37 +64,37 @@ class StepResult:
     duration: Optional[timedelta]
     values: Dict[str, Any]
     notes: str
-    otbiolab_path: Optional[str]
+    otbiolab_paths: List[str]  # Liste aller übergebenen OTBioLab-Dateien (Schritt-Ebene, legacy)
+    field_otbiolab_files: Dict[str, List[str]] = field(default_factory=dict)  # Feld-ID → Liste von Dateien
+    repeated_measurements: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)  # Feld-ID → Liste von Versuchen (jeder Versuch = Dict von Sub-Feld-Werten)
+
+
+def _parse_field_config(field_data: dict) -> FieldConfig:
+    """Parse a field config from JSON, including nested repeated_fields."""
+    repeated_fields = []
+    if "repeated_fields" in field_data:
+        repeated_fields = [_parse_field_config(rf) for rf in field_data["repeated_fields"]]
+
+    return FieldConfig(
+        field_id=str(field_data["id"]),
+        label=str(field_data.get("label", field_data["id"])),
+        kind=str(field_data.get("type", "string")),
+        required=bool(field_data.get("required", False)),
+        placeholder=field_data.get("placeholder"),
+        options=list(field_data.get("options", [])),
+        use_from_ref=bool(field_data.get("use_from_ref", False)),
+        otbiolab_template=field_data.get("otbiolab_filename_template"),
+        repeated_measurement=bool(field_data.get("type") == "repeated_measurement"),
+        repeated_fields=repeated_fields,
+    )
 
 
 def load_declaration(path: Path) -> Declaration:
     data = json.loads(path.read_text(encoding="utf-8"))
-    metadata_fields = [
-        FieldConfig(
-            field_id=str(item["id"]),
-            label=str(item.get("label", item["id"])),
-            kind=str(item.get("type", "string")),
-            required=bool(item.get("required", False)),
-            placeholder=item.get("placeholder"),
-            options=list(item.get("options", [])),
-            use_from_ref=bool(item.get("use_from_ref", False)),
-        )
-        for item in data.get("metadata_fields", [])
-    ]
+    metadata_fields = [_parse_field_config(item) for item in data.get("metadata_fields", [])]
     steps = []
     for raw_step in data.get("steps", []):
-        step_fields = [
-            FieldConfig(
-                field_id=str(field["id"]),
-                label=str(field.get("label", field["id"])),
-                kind=str(field.get("type", "string")),
-                required=bool(field.get("required", False)),
-                placeholder=field.get("placeholder"),
-                options=list(field.get("options", [])),
-                use_from_ref=bool(field.get("use_from_ref", False)),
-            )
-            for field in raw_step.get("fields", [])
-        ]
+        step_fields = [_parse_field_config(field) for field in raw_step.get("fields", [])]
         steps.append(
             StepConfig(
                 step_id=str(raw_step["id"]),
@@ -259,7 +262,9 @@ class SessionApp(tk.Tk):
         self.current_step_index: int = -1
         self.session_started_at: Optional[datetime] = None
         self.current_step_started_at: Optional[datetime] = None
-        self.last_otbiolab_path: Optional[Path] = None
+        self.current_step_otbiolab_paths: List[str] = []  # Liste aller OTBioLab-Dateien für aktuellen Schritt (legacy)
+        self.current_step_field_otbiolab_files: Dict[str, List[str]] = {}  # Feld-ID → Liste von OTBioLab-Dateien
+        self.current_step_repeated_measurements: Dict[str, List[Dict[str, Any]]] = {}  # Feld-ID → Liste von Versuchen für wiederholbare Messungen
         self.session_timestamp: Optional[str] = None
         self._timer_after_id: Optional[str] = None
         self.session_finished: bool = False
@@ -554,6 +559,167 @@ class SessionApp(tk.Tk):
             widget.insert(0, "")
         return FieldControl(config, widget, variable)
 
+    def _add_repeated_measurement_ui(self, start_row: int, field_cfg: FieldConfig) -> None:
+        """Erstellt UI für wiederholbare Messungen mit dynamischen Versuchen."""
+        # LabelFrame für diese wiederholbare Messung
+        frame = ttk.LabelFrame(self.step_fields_frame, text=field_cfg.label, padding=10)
+        frame.grid(row=start_row, column=0, columnspan=4, sticky="ew", pady=8)
+        frame.columnconfigure(1, weight=1)
+
+        # Hole existierende Versuche
+        attempts = self.current_step_repeated_measurements.get(field_cfg.field_id, [])
+
+        # Container für alle Versuche
+        attempts_frame = ttk.Frame(frame)
+        attempts_frame.grid(row=0, column=0, columnspan=2, sticky="ew")
+        attempts_frame.columnconfigure(1, weight=1)
+
+        # Zeige jeden Versuch
+        for attempt_idx, attempt_data in enumerate(attempts):
+            self._render_single_attempt(attempts_frame, field_cfg, attempt_idx, attempt_data)
+
+        # "Versuch hinzufügen" Button
+        add_btn = ttk.Button(
+            frame,
+            text="+ Versuch hinzufügen",
+            command=lambda: self._add_new_attempt(field_cfg)
+        )
+        add_btn.grid(row=1, column=0, columnspan=2, pady=(8, 0), sticky="w")
+
+    def _render_single_attempt(self, parent: ttk.Frame, field_cfg: FieldConfig, attempt_idx: int, attempt_data: Dict[str, Any]) -> None:
+        """Rendert einen einzelnen Versuch mit allen Sub-Feldern."""
+        # Separator
+        if attempt_idx > 0:
+            sep = ttk.Separator(parent, orient="horizontal")
+            sep.grid(row=attempt_idx * 100, column=0, columnspan=4, sticky="ew", pady=(8, 8))
+
+        # Header: Versuch #N
+        header = ttk.Label(parent, text=f"Versuch {attempt_idx + 1}", font=("Segoe UI", 10, "bold"))
+        header.grid(row=attempt_idx * 100 + 1, column=0, columnspan=4, sticky="w", pady=(0, 4))
+
+        # Render Sub-Felder
+        for sub_row, sub_field_cfg in enumerate(field_cfg.repeated_fields):
+            actual_row = attempt_idx * 100 + 2 + sub_row
+
+            # Label
+            label = ttk.Label(parent, text=sub_field_cfg.label + ":")
+            label.grid(row=actual_row, column=0, sticky="e", padx=(0, 12), pady=2)
+
+            # Control
+            control_key = f"{field_cfg.field_id}__attempt{attempt_idx}__{sub_field_cfg.field_id}"
+            control = self._create_field_control(parent, sub_field_cfg)
+            control.widget.grid(row=actual_row, column=1, sticky="ew", pady=2)
+
+            # Setze gespeicherten Wert
+            if sub_field_cfg.field_id in attempt_data:
+                control.set_value(attempt_data[sub_field_cfg.field_id])
+
+            self.step_controls[control_key] = control
+
+            # OTBioLab Button (wenn Template vorhanden)
+            if field_cfg.otbiolab_template and save_in_word_dialog is not None:
+                btn = ttk.Button(
+                    parent,
+                    text="📁",
+                    width=3,
+                    command=lambda fid=field_cfg.field_id, idx=attempt_idx: self._trigger_repeated_measurement_otbiolab_save(fid, idx)
+                )
+                btn.grid(row=actual_row, column=2, sticky="w", padx=(8, 0), pady=2)
+
+                # Zeige Dateiname, wenn vorhanden
+                if "otbiolab_file" in attempt_data:
+                    file_label = ttk.Label(
+                        parent,
+                        text=f"✓ {Path(attempt_data['otbiolab_file']).name}",
+                        foreground="#1f6aa5"
+                    )
+                    file_label.grid(row=actual_row, column=3, sticky="w", padx=(4, 0), pady=2)
+
+    def _add_new_attempt(self, field_cfg: FieldConfig) -> None:
+        """Fügt einen neuen Versuch hinzu und aktualisiert die UI."""
+        if field_cfg.field_id not in self.current_step_repeated_measurements:
+            self.current_step_repeated_measurements[field_cfg.field_id] = []
+
+        # Neuen leeren Versuch hinzufügen
+        new_attempt = {}
+        self.current_step_repeated_measurements[field_cfg.field_id].append(new_attempt)
+
+        # UI neu aufbauen um den neuen Versuch anzuzeigen
+        self._show_current_step()
+
+    def _trigger_repeated_measurement_otbiolab_save(self, field_id: str, attempt_idx: int) -> None:
+        """Triggered OTBioLab Save für einen spezifischen Versuch."""
+        if not self.declaration or save_in_word_dialog is None:
+            return
+
+        step = self.declaration.steps[self.current_step_index]
+        field_cfg = None
+        for f in step.fields:
+            if f.field_id == field_id:
+                field_cfg = f
+                break
+
+        if not field_cfg or not field_cfg.otbiolab_template:
+            return
+
+        # Baue Template-Context
+        context = self._build_template_context(step)
+        context["field_id"] = field_id
+        context["attempt_number"] = attempt_idx + 1  # 1-based für Dateinamen
+
+        filename = field_cfg.otbiolab_template.format(**context)
+        full_path = self.output_dir / filename
+
+        self.status_var.set(f"Warte auf OTBioLab Speichern-Dialog für Versuch {attempt_idx + 1}...")
+        self.update_idletasks()
+
+        def callback():
+            success = False
+            message = "Timeout oder Fehler beim Speichern."
+            try:
+                success = save_in_word_dialog(str(full_path), timeout=30)
+                if success:
+                    message = f"Datei gespeichert: {filename}"
+            except Exception as exc:
+                message = f"Fehler: {exc}"
+
+            self.after(0, lambda: self._on_repeated_measurement_interceptor_finished(success, message, full_path, field_id, attempt_idx))
+
+        threading.Thread(target=callback, daemon=True).start()
+
+    def _on_repeated_measurement_interceptor_finished(self, success: bool, message: str, path: Path, field_id: str, attempt_idx: int) -> None:
+        """Callback nach OTBioLab Save für wiederholbare Messung."""
+        if success:
+            # Speichere Dateiname in attempt_data
+            attempts = self.current_step_repeated_measurements.get(field_id, [])
+            if attempt_idx < len(attempts):
+                attempts[attempt_idx]["otbiolab_file"] = str(path)
+
+            # Speichere alle aktuellen Werte vor UI-Rebuild
+            step = self.declaration.steps[self.current_step_index]
+            self._save_repeated_measurement_values(step)
+
+            # UI neu aufbauen
+            self._show_current_step()
+
+            self.status_var.set(f"✓ {message}")
+        else:
+            self.status_var.set(f"✗ {message}")
+
+    def _save_repeated_measurement_values(self, step: StepConfig) -> None:
+        """Speichert alle Werte aus wiederholbaren Messungen vor UI-Rebuild."""
+        for field_cfg in step.fields:
+            if not field_cfg.repeated_measurement:
+                continue
+
+            attempts = self.current_step_repeated_measurements.get(field_cfg.field_id, [])
+            for attempt_idx in range(len(attempts)):
+                for sub_field_cfg in field_cfg.repeated_fields:
+                    control_key = f"{field_cfg.field_id}__attempt{attempt_idx}__{sub_field_cfg.field_id}"
+                    control = self.step_controls.get(control_key)
+                    if control:
+                        attempts[attempt_idx][sub_field_cfg.field_id] = control.get_value()
+
     def _update_start_button_state(self) -> None:
         ready = self.declaration is not None and self.output_dir is not None
         if ready and self.declaration:
@@ -603,7 +769,9 @@ class SessionApp(tk.Tk):
         self.current_step_index = 0
         self.current_step_started_at = datetime.now()
         self.step_results = []
-        self.last_otbiolab_path = None
+        self.current_step_otbiolab_paths = []
+        self.current_step_field_otbiolab_files = {}
+        self.current_step_repeated_measurements = {}
         self.session_title_var.set(self.declaration.title)
         self._schedule_timer(reset=True)
         self._show_frame("step")
@@ -673,12 +841,48 @@ class SessionApp(tk.Tk):
         for child in self.step_fields_frame.winfo_children():
             child.destroy()
         self.step_controls.clear()
-        for row, field_cfg in enumerate(step.fields):
-            label = ttk.Label(self.step_fields_frame, text=field_cfg.label + (":" if not field_cfg.label.endswith(":") else ""))
-            label.grid(row=row, column=0, sticky="e", padx=(0, 12), pady=4)
-            control = self._create_field_control(self.step_fields_frame, field_cfg)
-            control.widget.grid(row=row, column=1, sticky="ew", pady=4)
-            self.step_controls[field_cfg.field_id] = control
+
+        # Konfiguriere Spalten: Label (0), Control (1), OTBioLab-Button (2)
+        self.step_fields_frame.columnconfigure(1, weight=1)
+
+        row = 0
+        for field_cfg in step.fields:
+            if field_cfg.repeated_measurement:
+                # Wiederholbare Messung - spezielle UI
+                self._add_repeated_measurement_ui(row, field_cfg)
+                row += 1  # Repeated measurement nimmt eine Zeile (wird intern erweitert)
+            else:
+                # Normales Feld
+                # Label
+                label = ttk.Label(self.step_fields_frame, text=field_cfg.label + (":" if not field_cfg.label.endswith(":") else ""))
+                label.grid(row=row, column=0, sticky="e", padx=(0, 12), pady=4)
+
+                # Control (Input-Feld)
+                control = self._create_field_control(self.step_fields_frame, field_cfg)
+                control.widget.grid(row=row, column=1, sticky="ew", pady=4)
+                self.step_controls[field_cfg.field_id] = control
+
+                # OTBioLab-Button (wenn Feld ein Template hat)
+                if field_cfg.otbiolab_template and save_in_word_dialog is not None:
+                    btn = ttk.Button(
+                        self.step_fields_frame,
+                        text="📁",  # Datei-Symbol
+                        width=3,
+                        command=lambda fid=field_cfg.field_id: self._trigger_field_otbiolab_save(fid)
+                    )
+                    btn.grid(row=row, column=2, sticky="w", padx=(8, 0), pady=4)
+
+                    # Zeige Anzahl der bereits übergebenen Dateien
+                    if field_cfg.field_id in self.current_step_field_otbiolab_files:
+                        count = len(self.current_step_field_otbiolab_files[field_cfg.field_id])
+                        if count > 0:
+                            count_label = ttk.Label(
+                                self.step_fields_frame,
+                                text=f"({count})",
+                                foreground="#1f6aa5"
+                            )
+                            count_label.grid(row=row, column=3, sticky="w", padx=(4, 0), pady=4)
+                row += 1
 
         # Wende Referenz-Daten an (falls vorhanden und Felder mit use_from_ref=true)
         if self.reference_data and "steps" in self.reference_data:
@@ -695,15 +899,21 @@ class SessionApp(tk.Tk):
         existing = self.step_results[self.current_step_index] if len(self.step_results) > self.current_step_index else None
         if existing:
             for field_cfg in step.fields:
-                control = self.step_controls.get(field_cfg.field_id)
-                if control:
-                    control.set_value(existing.values.get(field_cfg.field_id, ""))
+                if not field_cfg.repeated_measurement:
+                    control = self.step_controls.get(field_cfg.field_id)
+                    if control:
+                        control.set_value(existing.values.get(field_cfg.field_id, ""))
             self.notes_text.delete("1.0", "end")
             self.notes_text.insert("1.0", existing.notes or "")
-            self.last_otbiolab_path = Path(existing.otbiolab_path) if existing.otbiolab_path else None
+            self.current_step_otbiolab_paths = list(existing.otbiolab_paths)  # Liste kopieren (legacy)
+            self.current_step_field_otbiolab_files = {k: list(v) for k, v in existing.field_otbiolab_files.items()}  # Deep copy
+            # Restore repeated measurements
+            self.current_step_repeated_measurements = {k: [dict(attempt) for attempt in v] for k, v in existing.repeated_measurements.items()}  # Deep copy
         else:
             self.notes_text.delete("1.0", "end")
-            self.last_otbiolab_path = None
+            self.current_step_otbiolab_paths = []
+            self.current_step_field_otbiolab_files = {}
+            self.current_step_repeated_measurements = {}
 
         placeholder = step.notes_placeholder or "Notizen zur Messung"
         self.notes_placeholder_var.set(placeholder)
@@ -718,8 +928,14 @@ class SessionApp(tk.Tk):
         if not self.declaration:
             return
         step = self.declaration.steps[self.current_step_index]
+
+        # Validiere und sammle normale Feld-Werte
         values: Dict[str, Any] = {}
         for field_cfg in step.fields:
+            if field_cfg.repeated_measurement:
+                # Überspringe wiederholbare Messungen - die werden separat gespeichert
+                continue
+
             control = self.step_controls.get(field_cfg.field_id)
             raw_value = control.get_value() if control else ""
             typed_value, ok = self._coerce_value(field_cfg, raw_value)
@@ -731,6 +947,9 @@ class SessionApp(tk.Tk):
                 return
             values[field_cfg.field_id] = typed_value if raw_value != "" else ""
 
+        # Speichere aktuelle Werte aus wiederholbaren Messungen
+        self._save_repeated_measurement_values(step)
+
         notes_text = self.notes_text.get("1.0", "end-1c").strip()
         completed_at = datetime.now()
         duration = completed_at - self.current_step_started_at if self.current_step_started_at else None
@@ -741,7 +960,9 @@ class SessionApp(tk.Tk):
             duration=duration,
             values=values,
             notes=notes_text,
-            otbiolab_path=str(self.last_otbiolab_path) if self.last_otbiolab_path else None,
+            otbiolab_paths=list(self.current_step_otbiolab_paths),  # Liste kopieren (legacy)
+            field_otbiolab_files={k: list(v) for k, v in self.current_step_field_otbiolab_files.items()},  # Deep copy
+            repeated_measurements={k: [dict(attempt) for attempt in v] for k, v in self.current_step_repeated_measurements.items()},  # Deep copy
         )
 
         if len(self.step_results) > self.current_step_index:
@@ -752,6 +973,9 @@ class SessionApp(tk.Tk):
         if self.current_step_index + 1 < len(self.declaration.steps):
             self.current_step_index += 1
             self.current_step_started_at = datetime.now()
+            self.current_step_otbiolab_paths = []  # Liste für nächsten Schritt zurücksetzen (legacy)
+            self.current_step_field_otbiolab_files = {}  # Dictionary für nächsten Schritt zurücksetzen
+            self.current_step_repeated_measurements = {}  # Dictionary für nächsten Schritt zurücksetzen
             self._show_current_step()
         else:
             self._finish_session()
@@ -824,16 +1048,66 @@ class SessionApp(tk.Tk):
                 lines.append("")
                 lines.append("    Eingaben:")
                 for field_cfg in result.config.fields:
+                    if field_cfg.repeated_measurement:
+                        # Überspringe - wiederholbare Messungen werden separat ausgegeben
+                        continue
+
                     value = result.values.get(field_cfg.field_id, "")
                     lines.append(f"      • {field_cfg.label}: {value}")
+
+                    # Zeige OTBioLab-Dateien für dieses Feld (falls vorhanden)
+                    if field_cfg.field_id in result.field_otbiolab_files:
+                        field_files = result.field_otbiolab_files[field_cfg.field_id]
+                        if field_files:
+                            if len(field_files) == 1:
+                                lines.append(f"        💾 OTBioLab: {field_files[0]}")
+                            else:
+                                lines.append(f"        💾 OTBioLab-Dateien ({len(field_files)}):")
+                                for i, otb_path in enumerate(field_files, start=1):
+                                    lines.append(f"           {i}. {otb_path}")
+
+            # Zeige wiederholbare Messungen
+            if result.repeated_measurements:
+                lines.append("")
+                lines.append("    Wiederholbare Messungen:")
+                for field_cfg in result.config.fields:
+                    if not field_cfg.repeated_measurement:
+                        continue
+
+                    if field_cfg.field_id not in result.repeated_measurements:
+                        continue
+
+                    attempts = result.repeated_measurements[field_cfg.field_id]
+                    if not attempts:
+                        continue
+
+                    lines.append(f"      ▸ {field_cfg.label}:")
+                    for attempt_idx, attempt_data in enumerate(attempts, start=1):
+                        lines.append(f"        Versuch {attempt_idx}:")
+                        for sub_field_cfg in field_cfg.repeated_fields:
+                            sub_value = attempt_data.get(sub_field_cfg.field_id, "")
+                            lines.append(f"          • {sub_field_cfg.label}: {sub_value}")
+
+                        # Zeige OTBioLab-Datei für diesen Versuch
+                        if "otbiolab_file" in attempt_data:
+                            lines.append(f"          💾 OTBioLab: {attempt_data['otbiolab_file']}")
+
             if result.notes:
                 lines.append("")
                 lines.append(f"    📝 Notizen:")
                 for line in result.notes.split("\n"):
                     lines.append(f"       {line}")
-            if result.otbiolab_path:
+
+            # Schritt-basierte OTBioLab-Dateien (legacy)
+            if result.otbiolab_paths:
                 lines.append("")
-                lines.append(f"    💾 OTBioLab-Datei: {result.otbiolab_path}")
+                if len(result.otbiolab_paths) == 1:
+                    lines.append(f"    💾 OTBioLab-Datei (Schritt): {result.otbiolab_paths[0]}")
+                else:
+                    lines.append(f"    💾 OTBioLab-Dateien (Schritt, {len(result.otbiolab_paths)}):")
+                    for i, otb_path in enumerate(result.otbiolab_paths, start=1):
+                        lines.append(f"       {i}. {otb_path}")
+
             lines.append("")
         lines.append("=" * 70)
         lines.append("Ende des Protokolls")
@@ -879,6 +1153,61 @@ class SessionApp(tk.Tk):
 
         threading.Thread(target=worker, daemon=True).start()
 
+    def _trigger_field_otbiolab_save(self, field_id: str) -> None:
+        """Übergebe OTBioLab-Dateiname für ein spezifisches Feld."""
+        if not self.declaration or not self.output_dir:
+            return
+        step = self.declaration.steps[self.current_step_index]
+
+        # Finde das Feld
+        field_cfg = None
+        for f in step.fields:
+            if f.field_id == field_id:
+                field_cfg = f
+                break
+
+        if not field_cfg or not field_cfg.otbiolab_template:
+            messagebox.showinfo("Kein Dateiname", "Dieses Feld hat keine OTBioLab-Datei-Vorlage.")
+            return
+
+        if save_in_word_dialog is None:
+            messagebox.showwarning("Interceptor fehlt", "Das OTBioLab Skript konnte nicht geladen werden.")
+            return
+
+        # Baue Kontext mit Feld-spezifischen Informationen
+        context = self._build_template_context(step)
+        context["field_id"] = field_id
+        context["field_label"] = field_cfg.label
+
+        # Zähle bereits vorhandene Dateien für dieses Feld
+        existing_count = len(self.current_step_field_otbiolab_files.get(field_id, []))
+        context["file_number"] = existing_count + 1
+
+        try:
+            filename = field_cfg.otbiolab_template.format(**context)
+        except KeyError as exc:
+            messagebox.showerror("Template Fehler", f"Platzhalter {exc} konnte nicht gefüllt werden.")
+            return
+
+        if not filename.lower().endswith(".otb4"):
+            filename += ".otb4"
+        target_path = (self.output_dir / filename).resolve()
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self.status_var.set(f"Übergebe Dateiname für '{field_cfg.label}' an OTBioLab… ({target_path.name})")
+
+        # Hintergrundthread
+        def worker() -> None:
+            try:
+                success = save_in_word_dialog(str(target_path), timeout=25)
+                message = f"Dateiname für '{field_cfg.label}' übergeben." if success else "Speichern-Dialog wurde nicht gefunden."
+            except Exception as exc:
+                success = False
+                message = f"Fehler beim Zugriff auf den Speichern-Dialog: {exc}"
+            self.after(0, lambda: self._on_field_interceptor_finished(success, message, target_path, field_id))
+
+        threading.Thread(target=worker, daemon=True).start()
+
     def _build_template_context(self, step: StepConfig) -> Dict[str, Any]:
         context = dict(self.metadata_values)
         context["pid"] = context.get("pid", "PID")
@@ -893,7 +1222,44 @@ class SessionApp(tk.Tk):
         self.trigger_button.configure(state="normal")
         self.next_button.configure(state="normal")
         self.status_var.set(message)
-        self.last_otbiolab_path = path if success else None
+        if success:
+            # Füge Pfad zur Liste hinzu
+            self.current_step_otbiolab_paths.append(str(path))
+            # Zeige Anzahl der übergebenen Dateien an
+            count = len(self.current_step_otbiolab_paths)
+            self.status_var.set(f"{message} ({count} Datei{'en' if count != 1 else ''} für diesen Schritt)")
+
+    def _on_field_interceptor_finished(self, success: bool, message: str, path: Path, field_id: str) -> None:
+        """Callback nach Feld-spezifischer OTBioLab-Dateiübergabe."""
+        self.status_var.set(message)
+        if success:
+            # Füge Pfad zur Feld-spezifischen Liste hinzu
+            if field_id not in self.current_step_field_otbiolab_files:
+                self.current_step_field_otbiolab_files[field_id] = []
+            self.current_step_field_otbiolab_files[field_id].append(str(path))
+
+            # Zeige Anzahl der übergebenen Dateien für dieses Feld
+            count = len(self.current_step_field_otbiolab_files[field_id])
+            self.status_var.set(f"{message} ({count} Datei{'en' if count != 1 else ''} für dieses Feld)")
+
+            # Speichere aktuelle Werte vor UI-Update
+            if not self.declaration:
+                return
+            step = self.declaration.steps[self.current_step_index]
+            current_values = {}
+            for field_cfg in step.fields:
+                control = self.step_controls.get(field_cfg.field_id)
+                if control:
+                    current_values[field_cfg.field_id] = control.get_value()
+
+            # Aktualisiere die UI, um die Anzahl neben dem Button anzuzeigen
+            self._show_current_step()
+
+            # Stelle gespeicherte Werte wieder her
+            for field_cfg in step.fields:
+                control = self.step_controls.get(field_cfg.field_id)
+                if control and field_cfg.field_id in current_values:
+                    control.set_value(current_values[field_cfg.field_id])
 
     # Zusammenfassung/Export ------------------------------------------------------
     def _export_protocol(self) -> None:
@@ -917,7 +1283,8 @@ class SessionApp(tk.Tk):
         self.current_step_started_at = None
         self.current_step_index = -1
         self.step_results = []
-        self.last_otbiolab_path = None
+        self.current_step_otbiolab_paths = []
+        self.current_step_field_otbiolab_files = {}
         self.metadata_values = {}
         self.session_finished = False
         self.total_timer_var.set("00:00:00")
