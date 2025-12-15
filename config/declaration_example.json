@@ -1,0 +1,93 @@
+{
+  "title": "Beispiel Versuchsreihe",
+  "description": "Deklarationsdatei zur Steuerung des Messablaufs.",
+  "metadata_fields": [
+    {
+      "id": "pid",
+      "label": "Proband*innen-ID (PID)",
+      "type": "string",
+      "required": true,
+      "placeholder": "z.B. P0123"
+    },
+    {
+      "id": "day",
+      "label": "Mess-Tag",
+      "type": "string",
+      "required": false,
+      "placeholder": "z.B. Tag 1"
+    },
+    {
+      "id": "notes",
+      "label": "Allgemeine Hinweise",
+      "type": "multiline",
+      "required": false,
+      "placeholder": "optional"
+    }
+  ],
+  "steps": [
+    {
+      "id": "warmup",
+      "title": "Warm-up",
+      "description": "Kurzes Aufwärmen vor den MVC Messungen.",
+      "expected_duration_seconds": 180,
+      "fields": [
+        {
+          "id": "perceived_effort",
+          "label": "Subjektive Belastung",
+          "type": "string",
+          "required": false,
+          "placeholder": "z.B. Borg 13"
+        }
+      ],
+      "notes_placeholder": "Besonderheiten während des Warm-ups"
+    },
+    {
+      "id": "mvc1",
+      "title": "MVC 1",
+      "description": "Erste maximale isometrische Kontraktion (MVC).",
+      "expected_duration_seconds": 120,
+      "fields": [
+        {
+          "id": "contrex_value",
+          "label": "Contrex (Nm)",
+          "type": "float",
+          "required": true,
+          "placeholder": "z.B. 145.2"
+        },
+        {
+          "id": "otbiolab_value",
+          "label": "OTBioLab (%MVC)",
+          "type": "float",
+          "required": true,
+          "placeholder": "z.B. 96.5"
+        }
+      ],
+      "otbiolab_filename_template": "{pid}_MVC1.otb4",
+      "notes_placeholder": "Hinweise zur ersten MVC Messung"
+    },
+    {
+      "id": "mvc2",
+      "title": "MVC 2",
+      "description": "Zweite maximale isometrische Kontraktion (MVC).",
+      "expected_duration_seconds": 120,
+      "fields": [
+        {
+          "id": "contrex_value",
+          "label": "Contrex (Nm)",
+          "type": "float",
+          "required": true,
+          "placeholder": "z.B. 150.0"
+        },
+        {
+          "id": "otbiolab_value",
+          "label": "OTBioLab (%MVC)",
+          "type": "float",
+          "required": true,
+          "placeholder": "z.B. 102.3"
+        }
+      ],
+      "otbiolab_filename_template": "{pid}_MVC2.otb4",
+      "notes_placeholder": "Hinweise zur zweiten MVC Messung"
+    }
+  ]
+}

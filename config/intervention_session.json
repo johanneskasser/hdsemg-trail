@@ -1,0 +1,433 @@
+{
+  "title": "HDsEMG Interventionssession",
+  "description": "Cross-Over Reliability und Interventions-Session (konzentrisches vs. exzentrisches Training)",
+  "metadata_fields": [
+    {
+      "id": "pid",
+      "label": "Proband*innen-ID (PID)",
+      "type": "string",
+      "required": true,
+      "placeholder": "z.B. P001",
+      "use_from_ref": true
+    },
+    {
+      "id": "mess_tag",
+      "label": "Mess-Tag",
+      "type": "string",
+      "required": true,
+      "placeholder": "TT.MM.JJJJ"
+    },
+    {
+      "id": "session_type",
+      "label": "Session-Typ",
+      "type": "choice",
+      "required": true,
+      "options": ["Day 1 - Familiarization", "Day 2 - Intervention"]
+    },
+    {
+      "id": "randomization",
+      "label": "Randomisierung (erste Trainingsblock)",
+      "type": "choice",
+      "required": true,
+      "options": ["CON first", "ECC first"]
+    },
+    {
+      "id": "doms_score",
+      "label": "DOMS-Score (0-10)",
+      "type": "integer",
+      "required": false,
+      "placeholder": "0 = keine Schmerzen, 10 = maximal"
+    },
+    {
+      "id": "notes_general",
+      "label": "Allgemeine Hinweise",
+      "type": "multiline",
+      "required": false,
+      "placeholder": "Besonderheiten, Abweichungen vom Protokoll, etc."
+    }
+  ],
+  "steps": [
+    {
+      "id": "arrival_setup",
+      "title": "Ankunft & Setup",
+      "description": "Consent, Anthropometrie, Baseline Soreness Check, Seat/Lever Adjustment, Elektroden-Platzierung",
+      "expected_duration_seconds": 1350,
+      "notes_placeholder": "Besonderheiten beim Setup, Elektrodenposition, etc.",
+      "fields": [
+        {
+          "id": "body_height",
+          "label": "Körpergröße (cm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "body_mass",
+          "label": "Körpermasse (kg)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "dominant_leg",
+          "label": "Dominantes Bein",
+          "type": "choice",
+          "required": true,
+          "options": ["links", "rechts"],
+          "use_from_ref": true
+        }
+      ]
+    },
+    {
+      "id": "mvc_pre",
+      "title": "MVC (Pre-Intervention)",
+      "description": "Maximale willkürliche Kontraktion - 3 Versuche, bester Wert wird verwendet zur Normalisierung",
+      "expected_duration_seconds": 600,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_PRE.otb4",
+      "notes_placeholder": "MVC-Werte, Besonderheiten, Ermüdung, etc.",
+      "fields": [
+        {
+          "id": "mvc_trial1",
+          "label": "MVC Versuch 1 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial2",
+          "label": "MVC Versuch 2 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial3",
+          "label": "MVC Versuch 3 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_best",
+          "label": "MVC Best (Nm)",
+          "type": "float",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "ft_block1",
+      "title": "Force-Tracking Block 1 (Baseline)",
+      "description": "Baseline Force-Tracking: Trapezoid & Triangular Ramps (30-40% MVC) zur Etablierung der Pre-Training Reliabilität",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block1.otb4",
+      "notes_placeholder": "Qualität des Force-Tracking, Abweichungen, Signal-Qualität",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "constant_completed",
+          "label": "Constant Hold abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "rest1",
+      "title": "REST 1",
+      "description": "Passive Ruhe (2-3 min) vor Pre-Interventions-Referenz-Tracking",
+      "expected_duration_seconds": 150,
+      "notes_placeholder": "Subjektive Erschöpfung, Befinden"
+    },
+    {
+      "id": "ft_block2",
+      "title": "Force-Tracking Block 2 (Pre-Intervention)",
+      "description": "Pre-Intervention Tracking nach Ruhe - dient als unmittelbare Baseline vor dem ersten Loading Block",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block2_PRE.otb4",
+      "notes_placeholder": "Force-Tracking Qualität, Signal-Qualität",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "training_block1",
+      "title": "Training Block 1",
+      "description": "Erste Loading-Phase: 4×10 Repetitionen @45°/s. Kontraktionsmodus (CON oder ECC) gemäß Randomisierung",
+      "expected_duration_seconds": 1200,
+      "notes_placeholder": "Kontraktionsmodus, Belastung, subjektive Anstrengung (Borg CR10), Besonderheiten",
+      "fields": [
+        {
+          "id": "mode",
+          "label": "Kontraktionsmodus",
+          "type": "choice",
+          "required": true,
+          "options": ["Konzentrisch (CON)", "Exzentrisch (ECC)"]
+        },
+        {
+          "id": "sets_completed",
+          "label": "Sätze abgeschlossen",
+          "type": "integer",
+          "required": true,
+          "placeholder": "Anzahl der abgeschlossenen Sätze (max. 4)"
+        },
+        {
+          "id": "reps_per_set",
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "id": "borg_score",
+          "label": "Borg CR10 Anstrengung",
+          "type": "integer",
+          "required": false,
+          "placeholder": "0-10"
+        }
+      ]
+    },
+    {
+      "id": "ft_block3",
+      "title": "Force-Tracking Block 3 (Post-Training 1)",
+      "description": "Unmittelbares Post-Training Tracking zur Evaluation der kurzfristigen MU-Modulation nach dem ersten Loading Block",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block3_POST1.otb4",
+      "notes_placeholder": "Force-Tracking Qualität, Ermüdungszeichen",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "washout",
+      "title": "WASHOUT",
+      "description": "Aktive Erholung (5-7 min Pause mit leichten Muskelbewegungen) vor Wechsel des Kontraktionsmodus",
+      "expected_duration_seconds": 360,
+      "notes_placeholder": "Subjektive Erholung, Muskelsteifigkeit, Befinden",
+      "fields": [
+        {
+          "id": "recovery_quality",
+          "label": "Erholungsqualität",
+          "type": "choice",
+          "required": false,
+          "options": ["Vollständig erholt", "Teilweise erholt", "Wenig erholt", "Nicht erholt"]
+        }
+      ]
+    },
+    {
+      "id": "ft_block4",
+      "title": "Force-Tracking Block 4 (Post-Washout)",
+      "description": "Tracking unmittelbar nach Washout zur Erfassung transienter Erholungseffekte vor der zweiten Intervention",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block4_WASHOUT.otb4",
+      "notes_placeholder": "Force-Tracking Qualität nach Erholung",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "training_block2",
+      "title": "Training Block 2",
+      "description": "Zweite Loading-Phase: 4×10 Repetitionen @45°/s mit dem ANDEREN Kontraktionsmodus (counter-balanced)",
+      "expected_duration_seconds": 1200,
+      "notes_placeholder": "Kontraktionsmodus, Belastung, subjektive Anstrengung (Borg CR10), Vergleich zu Block 1",
+      "fields": [
+        {
+          "id": "mode",
+          "label": "Kontraktionsmodus",
+          "type": "choice",
+          "required": true,
+          "options": ["Konzentrisch (CON)", "Exzentrisch (ECC)"]
+        },
+        {
+          "id": "sets_completed",
+          "label": "Sätze abgeschlossen",
+          "type": "integer",
+          "required": true,
+          "placeholder": "Anzahl der abgeschlossenen Sätze (max. 4)"
+        },
+        {
+          "id": "reps_per_set",
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "id": "borg_score",
+          "label": "Borg CR10 Anstrengung",
+          "type": "integer",
+          "required": false,
+          "placeholder": "0-10"
+        }
+      ]
+    },
+    {
+      "id": "ft_block5",
+      "title": "Force-Tracking Block 5 (Post-Training 2)",
+      "description": "Post-Training Tracking nach beiden Kontraktionsmodi zur Beurteilung kumulativer Adaptation und Reliabilität",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block5_POST2.otb4",
+      "notes_placeholder": "Force-Tracking Qualität, kumulative Ermüdung",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "rest2",
+      "title": "REST 2",
+      "description": "Kurze Erholung (2-3 min) vor finalem MVC-Test",
+      "expected_duration_seconds": 150,
+      "notes_placeholder": "Subjektive Erschöpfung vor MVC"
+    },
+    {
+      "id": "ft_block6",
+      "title": "Force-Tracking Block 6 (Final)",
+      "description": "Finales Tracking nach Ruhe zur Sicherstellung stabiler Post-Interventions-Bedingungen vor maximalem Test",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_Block6_FINAL.otb4",
+      "notes_placeholder": "Finale Force-Tracking Qualität",
+      "fields": [
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        }
+      ]
+    },
+    {
+      "id": "mvc_post",
+      "title": "MVC (Post-Intervention)",
+      "description": "Finale MVC-Serie (3 Versuche) zur Bestimmung der Post-Interventions-Maximalkraft und neuralen Drive-Änderungen",
+      "expected_duration_seconds": 600,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_POST.otb4",
+      "notes_placeholder": "MVC-Werte, Vergleich zu Pre-Intervention, Ermüdung",
+      "fields": [
+        {
+          "id": "mvc_trial1",
+          "label": "MVC Versuch 1 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial2",
+          "label": "MVC Versuch 2 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial3",
+          "label": "MVC Versuch 3 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_best",
+          "label": "MVC Best (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_change",
+          "label": "MVC-Änderung (%)",
+          "type": "float",
+          "required": false,
+          "placeholder": "Prozentuale Änderung zu Pre"
+        }
+      ]
+    },
+    {
+      "id": "debrief",
+      "title": "Debrief & Elektroden-Entfernung",
+      "description": "Abschlussgespräch, Feedback einholen, Elektroden entfernen",
+      "expected_duration_seconds": 600,
+      "notes_placeholder": "Feedback des Probanden, Besonderheiten, nächste Schritte",
+      "fields": [
+        {
+          "id": "overall_comfort",
+          "label": "Gesamter Komfort (1-10)",
+          "type": "integer",
+          "required": false,
+          "placeholder": "1 = sehr unkomfortabel, 10 = sehr komfortabel"
+        },
+        {
+          "id": "feedback",
+          "label": "Feedback",
+          "type": "multiline",
+          "required": false,
+          "placeholder": "Subjektives Feedback des Probanden"
+        }
+      ]
+    }
+  ]
+}
