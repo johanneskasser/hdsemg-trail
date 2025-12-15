@@ -75,6 +75,27 @@
           "required": true,
           "options": ["links", "rechts"],
           "use_from_ref": true
+        },
+        {
+          "id": "contrex_sitzwinkel",
+          "label": "Contrex Sitzwinkel (Grad)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "contrex_sitzboden_laenge",
+          "label": "Contrex Sitzboden Länge (mm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "contrex_lever_position",
+          "label": "Contrex Hebelarm Position (mm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
         }
       ]
     },

@@ -1,0 +1,251 @@
+{
+  "title": "HDsEMG Familiarization Session",
+  "description": "Einführungs- und Testrunde zur Familiarisierung mit allen Messtypen und Trainingsinterventionen",
+  "metadata_fields": [
+    {
+      "id": "pid",
+      "label": "Proband*innen-ID (PID)",
+      "type": "string",
+      "required": true,
+      "placeholder": "z.B. P001",
+      "use_from_ref": true
+    },
+    {
+      "id": "mess_tag",
+      "label": "Mess-Tag",
+      "type": "string",
+      "required": true,
+      "placeholder": "TT.MM.JJJJ"
+    },
+    {
+      "id": "session_type",
+      "label": "Session-Typ",
+      "type": "choice",
+      "required": true,
+      "options": ["Day 1 - Familiarization", "Day 2 - Intervention"]
+    },
+    {
+      "id": "notes_general",
+      "label": "Allgemeine Hinweise",
+      "type": "multiline",
+      "required": false,
+      "placeholder": "Besonderheiten, Abweichungen vom Protokoll, etc."
+    }
+  ],
+  "steps": [
+    {
+      "id": "arrival_setup",
+      "title": "Contrex System Setup & Anthropometrie",
+      "description": "Consent, Körperwerte erheben, Seat/Lever Adjustment, Elektroden-Platzierung",
+      "expected_duration_seconds": 1350,
+      "notes_placeholder": "Besonderheiten beim Setup, Elektrodenposition, Probanden-Feedback zur Einrichtung",
+      "fields": [
+        {
+          "id": "body_height",
+          "label": "Körpergröße (cm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "body_mass",
+          "label": "Körpermasse (kg)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "dominant_leg",
+          "label": "Dominantes Bein",
+          "type": "choice",
+          "required": true,
+          "options": ["links", "rechts"],
+          "use_from_ref": true
+        },
+        {
+          "id": "contrex_sitzwinkel",
+          "label": "Contrex Sitzwinkel (Grad)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "contrex_sitzboden_laenge",
+          "label": "Contrex Sitzboden Länge (mm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        },
+        {
+          "id": "contrex_lever_position",
+          "label": "Contrex Hebelarm Position (mm)",
+          "type": "float",
+          "required": true,
+          "use_from_ref": true
+        }
+      ]
+    },
+    {
+      "id": "mvc_baseline",
+      "title": "MVC (Baseline)",
+      "description": "Maximale willkürliche Kontraktion - Best of Three zur Feststellung der Baseline-Maximalkraft",
+      "expected_duration_seconds": 600,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_MVC_BASELINE.otb4",
+      "notes_placeholder": "MVC-Werte, Probanden-Verständnis, Ausführungsqualität, Besonderheiten",
+      "fields": [
+        {
+          "id": "mvc_trial1",
+          "label": "MVC Versuch 1 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial2",
+          "label": "MVC Versuch 2 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_trial3",
+          "label": "MVC Versuch 3 (Nm)",
+          "type": "float",
+          "required": true
+        },
+        {
+          "id": "mvc_best",
+          "label": "MVC Best (Nm)",
+          "type": "float",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "force_tracking",
+      "title": "Force Tracking (Pyramide & Trapezoid)",
+      "description": "Familiarisierung mit Force-Tracking Aufgaben: Pyramide und Trapezoid (30-40% MVC)",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_FT_FAM.otb4",
+      "notes_placeholder": "Qualität des Force-Tracking, Verständnis der Aufgaben, Schwierigkeiten, Signal-Qualität",
+      "fields": [
+        {
+          "id": "pyramid_completed",
+          "label": "Pyramid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "trap_completed",
+          "label": "Trapezoid abgeschlossen",
+          "type": "choice",
+          "required": true,
+          "options": ["Ja", "Nein", "Teilweise"]
+        },
+        {
+          "id": "tracking_quality",
+          "label": "Tracking-Qualität (subjektiv)",
+          "type": "choice",
+          "required": false,
+          "options": ["Sehr gut", "Gut", "Befriedigend", "Ausreichend", "Unzureichend"]
+        }
+      ]
+    },
+    {
+      "id": "training_con",
+      "title": "Trainingsintervention Konzentrisch",
+      "description": "Familiarisierung mit konzentrischer Trainingsintervention (z.B. 2-3 Sätze à 8-10 Wiederholungen)",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_TRAIN_CON.otb4",
+      "notes_placeholder": "Ausführungsqualität, Probanden-Feedback, Anstrengung, Besonderheiten",
+      "fields": [
+        {
+          "id": "sets_completed",
+          "label": "Sätze abgeschlossen",
+          "type": "integer",
+          "required": true,
+          "placeholder": "Anzahl der abgeschlossenen Sätze"
+        },
+        {
+          "id": "reps_per_set",
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "id": "borg_score",
+          "label": "Borg CR10 Anstrengung",
+          "type": "integer",
+          "required": false,
+          "placeholder": "0-10"
+        }
+      ]
+    },
+    {
+      "id": "pause",
+      "title": "Pause",
+      "description": "Aktive oder passive Pause zwischen konzentrischer und exzentrischer Intervention",
+      "expected_duration_seconds": 300,
+      "notes_placeholder": "Erholung, Befinden, Feedback des Probanden"
+    },
+    {
+      "id": "training_ecc",
+      "title": "Trainingsintervention Exzentrisch",
+      "description": "Familiarisierung mit exzentrischer Trainingsintervention (z.B. 2-3 Sätze à 8-10 Wiederholungen)",
+      "expected_duration_seconds": 900,
+      "otbiolab_filename_template": "{pid}_{session_timestamp}_TRAIN_ECC.otb4",
+      "notes_placeholder": "Ausführungsqualität, Probanden-Feedback, Vergleich zu konzentrischer Intervention, Anstrengung",
+      "fields": [
+        {
+          "id": "sets_completed",
+          "label": "Sätze abgeschlossen",
+          "type": "integer",
+          "required": true,
+          "placeholder": "Anzahl der abgeschlossenen Sätze"
+        },
+        {
+          "id": "reps_per_set",
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "id": "borg_score",
+          "label": "Borg CR10 Anstrengung",
+          "type": "integer",
+          "required": false,
+          "placeholder": "0-10"
+        }
+      ]
+    },
+    {
+      "id": "debrief",
+      "title": "Debrief & Elektroden-Entfernung",
+      "description": "Abschlussgespräch, Feedback einholen, Elektroden entfernen, Fragen klären",
+      "expected_duration_seconds": 600,
+      "notes_placeholder": "Feedback des Probanden, Verständnis des Protokolls, Fragen, Besonderheiten",
+      "fields": [
+        {
+          "id": "overall_comfort",
+          "label": "Gesamter Komfort (1-10)",
+          "type": "integer",
+          "required": false,
+          "placeholder": "1 = sehr unkomfortabel, 10 = sehr komfortabel"
+        },
+        {
+          "id": "protocol_understanding",
+          "label": "Protokoll-Verständnis (1-10)",
+          "type": "integer",
+          "required": false,
+          "placeholder": "1 = gar nicht verstanden, 10 = vollständig verstanden"
+        },
+        {
+          "id": "feedback",
+          "label": "Feedback",
+          "type": "multiline",
+          "required": false,
+          "placeholder": "Subjektives Feedback des Probanden zur Familiarization Session"
+        }
+      ]
+    }
+  ]
+}
