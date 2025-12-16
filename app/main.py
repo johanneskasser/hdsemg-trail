@@ -49,11 +49,21 @@ class StepConfig:
 
 
 @dataclass
+class Reminder:
+    """Wiederkehrende Erinnerung während der Session."""
+    reminder_id: str
+    text: str
+    interval_minutes: int
+    start_after_minutes: int = 0  # Wann soll die erste Erinnerung erscheinen
+
+
+@dataclass
 class Declaration:
     title: str
     description: str
     metadata_fields: List[FieldConfig]
     steps: List[StepConfig]
+    reminders: List[Reminder] = field(default_factory=list)
 
 
 @dataclass
@@ -108,11 +118,25 @@ def load_declaration(path: Path) -> Declaration:
         )
     if not steps:
         raise ValueError("Deklarationsdatei enthält keine Schritte.")
+
+    # Parse reminders
+    reminders = []
+    for raw_reminder in data.get("reminders", []):
+        reminders.append(
+            Reminder(
+                reminder_id=str(raw_reminder.get("id", f"reminder_{len(reminders)}")),
+                text=str(raw_reminder.get("text", "")),
+                interval_minutes=int(raw_reminder.get("interval_minutes", 15)),
+                start_after_minutes=int(raw_reminder.get("start_after_minutes", 0)),
+            )
+        )
+
     return Declaration(
         title=str(data.get("title", "Versuchsreihe")),
         description=str(data.get("description", "")),
         metadata_fields=metadata_fields,
         steps=steps,
+        reminders=reminders,
     )
 
 
@@ -269,6 +293,10 @@ class SessionApp(tk.Tk):
         self._timer_after_id: Optional[str] = None
         self.session_finished: bool = False
         self.reference_data: Optional[Dict[str, Any]] = None  # Geladene Referenz-Daten
+
+        # Reminder System
+        self.reminder_after_ids: Dict[str, str] = {}  # reminder_id → after_id für Abbruch
+        self.reminder_next_trigger: Dict[str, datetime] = {}  # reminder_id → nächster Trigger-Zeitpunkt
 
         # Bind close event
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -784,6 +812,110 @@ class SessionApp(tk.Tk):
                 return value, False
         return value, True
 
+    # Reminder System ------------------------------------------------------------
+    def _start_reminders(self) -> None:
+        """Startet alle wiederkehrenden Erinnerungen."""
+        if not self.declaration or not self.session_started_at:
+            return
+
+        for reminder in self.declaration.reminders:
+            # Berechne ersten Trigger-Zeitpunkt
+            first_trigger = self.session_started_at + timedelta(minutes=reminder.start_after_minutes)
+            self.reminder_next_trigger[reminder.reminder_id] = first_trigger
+
+            # Berechne Delay bis zum ersten Trigger
+            now = datetime.now()
+            delay_seconds = (first_trigger - now).total_seconds()
+            if delay_seconds < 0:
+                delay_seconds = 0
+
+            # Schedule ersten Reminder
+            self._schedule_reminder(reminder, int(delay_seconds * 1000))
+
+    def _schedule_reminder(self, reminder: Reminder, delay_ms: int) -> None:
+        """Scheduled einen einzelnen Reminder."""
+        def callback():
+            self._show_reminder_popup(reminder)
+            # Schedule nächsten Reminder
+            next_delay_ms = reminder.interval_minutes * 60 * 1000
+            self._schedule_reminder(reminder, next_delay_ms)
+
+        after_id = self.after(delay_ms, callback)
+        self.reminder_after_ids[reminder.reminder_id] = after_id
+
+    def _stop_reminders(self) -> None:
+        """Stoppt alle laufenden Erinnerungs-Timer."""
+        for after_id in self.reminder_after_ids.values():
+            self.after_cancel(after_id)
+        self.reminder_after_ids.clear()
+        self.reminder_next_trigger.clear()
+
+    def _show_reminder_popup(self, reminder: Reminder) -> None:
+        """Zeigt ein Pop-up für eine Erinnerung."""
+        # Update next trigger time
+        if self.session_started_at:
+            elapsed_minutes = (datetime.now() - self.session_started_at).total_seconds() / 60
+            self.reminder_next_trigger[reminder.reminder_id] = datetime.now() + timedelta(minutes=reminder.interval_minutes)
+
+        # Erstelle Pop-up Dialog
+        popup = tk.Toplevel(self)
+        popup.title("Erinnerung")
+        popup.geometry("500x250")
+        popup.transient(self)
+        popup.grab_set()
+
+        # Zentriere das Fenster
+        popup.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() // 2) - (popup.winfo_width() // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (popup.winfo_height() // 2)
+        popup.geometry(f"+{x}+{y}")
+
+        # Icon und Text
+        main_frame = ttk.Frame(popup, padding=20)
+        main_frame.pack(fill="both", expand=True)
+
+        # Titel mit Icon
+        title_frame = ttk.Frame(main_frame)
+        title_frame.pack(fill="x", pady=(0, 15))
+        ttk.Label(title_frame, text="⏰", font=("Segoe UI", 32)).pack(side="left", padx=(0, 10))
+        ttk.Label(title_frame, text="Erinnerung", font=("Segoe UI", 18, "bold")).pack(side="left")
+
+        # Reminder Text
+        text_label = ttk.Label(
+            main_frame,
+            text=reminder.text,
+            font=("Segoe UI", 12),
+            wraplength=450,
+            justify="left"
+        )
+        text_label.pack(pady=15)
+
+        # Info über nächste Erinnerung
+        next_time = datetime.now() + timedelta(minutes=reminder.interval_minutes)
+        info_text = f"Nächste Erinnerung in {reminder.interval_minutes} Minuten ({next_time.strftime('%H:%M')} Uhr)"
+        ttk.Label(main_frame, text=info_text, font=("Segoe UI", 9), foreground="#666").pack(pady=(10, 20))
+
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill="x")
+
+        def on_ok():
+            popup.destroy()
+
+        ok_button = ttk.Button(button_frame, text="Erledigt", command=on_ok, width=15)
+        ok_button.pack(side="right")
+
+        # Focus auf OK Button
+        ok_button.focus_set()
+        popup.bind("<Return>", lambda e: on_ok())
+        popup.bind("<Escape>", lambda e: on_ok())
+
+        # Sound (optional - nur wenn verfügbar)
+        try:
+            popup.bell()
+        except:
+            pass
+
     # Session-Steuerung ----------------------------------------------------------
     def _start_session(self) -> None:
         if not self.declaration:
@@ -811,6 +943,7 @@ class SessionApp(tk.Tk):
         self.current_step_repeated_measurements = {}
         self.session_title_var.set(self.declaration.title)
         self._schedule_timer(reset=True)
+        self._start_reminders()  # Starte Erinnerungs-Timer
         self._show_frame("step")
         self._show_current_step()
 
@@ -959,7 +1092,7 @@ class SessionApp(tk.Tk):
         trigger_allowed = bool(step.otbiolab_template) and save_in_word_dialog is not None
         self.trigger_button.configure(state=("normal" if trigger_allowed else "disabled"))
         self.status_var.set("")
-        self.current_step_started_at = datetime.now()
+        # Timer wird in _start_session, _complete_step und _back_to_previous_step gesetzt, nicht hier
 
     def _complete_step(self) -> None:
         if not self.declaration:
@@ -1028,6 +1161,7 @@ class SessionApp(tk.Tk):
         if self._timer_after_id:
             self.after_cancel(self._timer_after_id)
             self._timer_after_id = None
+        self._stop_reminders()  # Stoppe Erinnerungs-Timer
         total_duration = datetime.now() - self.session_started_at if self.session_started_at else None
         protocol_text = self._build_protocol_text(total_duration)
         self.summary_text.configure(state="normal")
@@ -1454,6 +1588,7 @@ class SessionApp(tk.Tk):
         # Beenden
         if self._timer_after_id:
             self.after_cancel(self._timer_after_id)
+        self._stop_reminders()  # Stoppe Erinnerungs-Timer
         self.destroy()
 
 

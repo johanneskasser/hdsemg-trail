@@ -96,6 +96,27 @@
           "type": "float",
           "required": true,
           "use_from_ref": true
+        },
+        {
+          "id": "signal_quality_check",
+          "label": "Signal Qualitäts-Check",
+          "type": "repeated_measurement",
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_PRE_SIGNAL_CHECK_{attempt_number}.otb4",
+          "repeated_fields": [
+            {
+              "id": "quality",
+              "label": "RMS Durchschnittsqualität",
+              "type": "float",
+              "required": true
+            },
+            {
+              "id": "notes",
+              "label": "Notizen",
+              "type": "multiline",
+              "required": false,
+              "placeholder": "Besonderheiten bei diesem Check, Anpassungen"
+            }
+          ]
         }
       ]
     },
@@ -372,6 +393,27 @@
           "type": "choice",
           "required": false,
           "options": ["Vollständig erholt", "Teilweise erholt", "Wenig erholt", "Nicht erholt"]
+        },
+        {
+          "id": "signal_quality_check",
+          "label": "Signal Qualitäts-Check",
+          "type": "repeated_measurement",
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_DURING_SIGNAL_CHECK_{attempt_number}.otb4",
+          "repeated_fields": [
+            {
+              "id": "quality",
+              "label": "RMS Durchschnittsqualität",
+              "type": "float",
+              "required": true
+            },
+            {
+              "id": "notes",
+              "label": "Notizen",
+              "type": "multiline",
+              "required": false,
+              "placeholder": "Besonderheiten bei diesem Check, Anpassungen"
+            }
+          ]
         }
       ]
     },
@@ -640,8 +682,37 @@
           "type": "multiline",
           "required": false,
           "placeholder": "Subjektives Feedback des Probanden"
+        },
+        {
+          "id": "signal_quality_check",
+          "label": "Signal Qualitäts-Check",
+          "type": "repeated_measurement",
+          "otbiolab_filename_template": "{pid}_{session_timestamp}_POST_SIGNAL_CHECK_{attempt_number}.otb4",
+          "repeated_fields": [
+            {
+              "id": "quality",
+              "label": "RMS Durchschnittsqualität",
+              "type": "float",
+              "required": true
+            },
+            {
+              "id": "notes",
+              "label": "Notizen",
+              "type": "multiline",
+              "required": false,
+              "placeholder": "Besonderheiten bei diesem Check, Anpassungen"
+            }
+          ]
         }
       ]
+    }
+  ],
+  "reminders": [
+    {
+      "id": "emg_ref_straps",
+      "text": "EMG Referenz-Elektroden überprüfen und ggf. neu befeuchten.\n\nDie Ref-Straps trocknen während der Messung aus und müssen regelmäßig befeuchtet werden, um eine gute Signalqualität zu gewährleisten.",
+      "interval_minutes": 1,
+      "start_after_minutes": 0
     }
   ]
 }
