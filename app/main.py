@@ -570,6 +570,9 @@ class SessionApp(tk.Tk):
         self.trigger_button = ttk.Button(button_row, text="Dateinamen an OTBioLab übergeben", command=self._trigger_otbiolab_save)
         self.trigger_button.grid(row=0, column=1, padx=(0, 8))
 
+        self.copy_step_filename_button = ttk.Button(button_row, text="Dateinamen kopieren", command=self._copy_step_filename)
+        self.copy_step_filename_button.grid(row=0, column=2, padx=(0, 8))
+
         self.next_button = ttk.Button(button_row, text="Weiter", command=self._complete_step)
         self.next_button.grid(row=0, column=3)
 
@@ -676,15 +679,29 @@ class SessionApp(tk.Tk):
 
             self.step_controls[control_key] = control
 
-            # OTBioLab Button (wenn Template vorhanden)
-            if field_cfg.otbiolab_template and save_in_word_dialog is not None:
-                btn = ttk.Button(
-                    parent,
-                    text="📁",
+            # OTBioLab Buttons (wenn Template vorhanden)
+            if field_cfg.otbiolab_template:
+                button_frame = ttk.Frame(parent)
+                button_frame.grid(row=actual_row, column=2, sticky="w", padx=(8, 0), pady=2)
+
+                # OTBioLab übergeben Button
+                if save_in_word_dialog is not None:
+                    btn = ttk.Button(
+                        button_frame,
+                        text="📁",
+                        width=3,
+                        command=lambda fid=field_cfg.field_id, idx=attempt_idx: self._trigger_repeated_measurement_otbiolab_save(fid, idx)
+                    )
+                    btn.pack(side="left", padx=(0, 4))
+
+                # Kopieren Button
+                copy_btn = ttk.Button(
+                    button_frame,
+                    text="📋",
                     width=3,
-                    command=lambda fid=field_cfg.field_id, idx=attempt_idx: self._trigger_repeated_measurement_otbiolab_save(fid, idx)
+                    command=lambda fid=field_cfg.field_id, idx=attempt_idx: self._copy_repeated_measurement_filename(fid, idx)
                 )
-                btn.grid(row=actual_row, column=2, sticky="w", padx=(8, 0), pady=2)
+                copy_btn.pack(side="left")
 
                 # Zeige Dateiname, wenn vorhanden
                 if "otbiolab_file" in attempt_data:
@@ -1032,15 +1049,29 @@ class SessionApp(tk.Tk):
                 control.widget.grid(row=row, column=1, sticky="ew", pady=4)
                 self.step_controls[field_cfg.field_id] = control
 
-                # OTBioLab-Button (wenn Feld ein Template hat)
-                if field_cfg.otbiolab_template and save_in_word_dialog is not None:
-                    btn = ttk.Button(
-                        self.step_fields_frame,
-                        text="📁",  # Datei-Symbol
+                # OTBioLab-Buttons (wenn Feld ein Template hat)
+                if field_cfg.otbiolab_template:
+                    button_frame = ttk.Frame(self.step_fields_frame)
+                    button_frame.grid(row=row, column=2, sticky="w", padx=(8, 0), pady=4)
+
+                    # OTBioLab übergeben Button
+                    if save_in_word_dialog is not None:
+                        btn = ttk.Button(
+                            button_frame,
+                            text="📁",  # Datei-Symbol
+                            width=3,
+                            command=lambda fid=field_cfg.field_id: self._trigger_field_otbiolab_save(fid)
+                        )
+                        btn.pack(side="left", padx=(0, 4))
+
+                    # Kopieren Button
+                    copy_btn = ttk.Button(
+                        button_frame,
+                        text="📋",  # Clipboard-Symbol
                         width=3,
-                        command=lambda fid=field_cfg.field_id: self._trigger_field_otbiolab_save(fid)
+                        command=lambda fid=field_cfg.field_id: self._copy_field_filename(fid)
                     )
-                    btn.grid(row=row, column=2, sticky="w", padx=(8, 0), pady=4)
+                    copy_btn.pack(side="left")
 
                     # Zeige Anzahl der bereits übergebenen Dateien
                     if field_cfg.field_id in self.current_step_field_otbiolab_files:
@@ -1091,6 +1122,8 @@ class SessionApp(tk.Tk):
         self.back_button.configure(state=("normal" if self.current_step_index > 0 else "disabled"))
         trigger_allowed = bool(step.otbiolab_template) and save_in_word_dialog is not None
         self.trigger_button.configure(state=("normal" if trigger_allowed else "disabled"))
+        copy_allowed = bool(step.otbiolab_template)
+        self.copy_step_filename_button.configure(state=("normal" if copy_allowed else "disabled"))
         self.status_var.set("")
         # Timer wird in _start_session, _complete_step und _back_to_previous_step gesetzt, nicht hier
 
@@ -1254,14 +1287,16 @@ class SessionApp(tk.Tk):
 
                     lines.append(f"      ▸ {field_cfg.label}:")
                     for attempt_idx, attempt_data in enumerate(attempts, start=1):
-                        lines.append(f"        Versuch {attempt_idx}:")
+                        # Zeige Dateiname direkt nach Versuch-Nummer (falls vorhanden)
+                        if "otbiolab_file" in attempt_data:
+                            filename = Path(attempt_data['otbiolab_file']).name
+                            lines.append(f"        Versuch {attempt_idx}: ({filename})")
+                        else:
+                            lines.append(f"        Versuch {attempt_idx}:")
+
                         for sub_field_cfg in field_cfg.repeated_fields:
                             sub_value = attempt_data.get(sub_field_cfg.field_id, "")
                             lines.append(f"          • {sub_field_cfg.label}: {sub_value}")
-
-                        # Zeige OTBioLab-Datei für diesen Versuch
-                        if "otbiolab_file" in attempt_data:
-                            lines.append(f"          💾 OTBioLab: {attempt_data['otbiolab_file']}")
 
             if result.notes:
                 lines.append("")
@@ -1431,6 +1466,109 @@ class SessionApp(tk.Tk):
                 control = self.step_controls.get(field_cfg.field_id)
                 if control and field_cfg.field_id in current_values:
                     control.set_value(current_values[field_cfg.field_id])
+
+    # Dateinamen kopieren --------------------------------------------------------
+    def _copy_step_filename(self) -> None:
+        """Kopiert den Dateinamen für den aktuellen Schritt in die Zwischenablage."""
+        if not self.declaration or not self.output_dir:
+            return
+        step = self.declaration.steps[self.current_step_index]
+        if not step.otbiolab_template:
+            return
+
+        context = self._build_template_context(step)
+        try:
+            filename = step.otbiolab_template.format(**context)
+        except KeyError as exc:
+            messagebox.showerror("Template Fehler", f"Platzhalter {exc} konnte nicht gefüllt werden.")
+            return
+
+        if not filename.lower().endswith(".otb4"):
+            filename += ".otb4"
+        target_path = (self.output_dir / filename).resolve()
+
+        # Kopiere in Zwischenablage
+        self.clipboard_clear()
+        self.clipboard_append(str(target_path))
+        self.update()
+        self.status_var.set(f"✓ Dateiname kopiert: {filename}")
+
+    def _copy_field_filename(self, field_id: str) -> None:
+        """Kopiert den Dateinamen für ein spezifisches Feld in die Zwischenablage."""
+        if not self.declaration or not self.output_dir:
+            return
+        step = self.declaration.steps[self.current_step_index]
+
+        # Finde das Feld
+        field_cfg = None
+        for f in step.fields:
+            if f.field_id == field_id:
+                field_cfg = f
+                break
+
+        if not field_cfg or not field_cfg.otbiolab_template:
+            return
+
+        # Baue Kontext
+        context = self._build_template_context(step)
+        context["field_id"] = field_id
+        context["field_label"] = field_cfg.label
+
+        # Zähle bereits vorhandene Dateien für dieses Feld
+        existing_count = len(self.current_step_field_otbiolab_files.get(field_id, []))
+        context["file_number"] = existing_count + 1
+
+        try:
+            filename = field_cfg.otbiolab_template.format(**context)
+        except KeyError as exc:
+            messagebox.showerror("Template Fehler", f"Platzhalter {exc} konnte nicht gefüllt werden.")
+            return
+
+        if not filename.lower().endswith(".otb4"):
+            filename += ".otb4"
+        target_path = (self.output_dir / filename).resolve()
+
+        # Kopiere in Zwischenablage
+        self.clipboard_clear()
+        self.clipboard_append(str(target_path))
+        self.update()
+        self.status_var.set(f"✓ Dateiname kopiert: {filename}")
+
+    def _copy_repeated_measurement_filename(self, field_id: str, attempt_idx: int) -> None:
+        """Kopiert den Dateinamen für einen spezifischen Versuch in die Zwischenablage."""
+        if not self.declaration or not self.output_dir:
+            return
+
+        step = self.declaration.steps[self.current_step_index]
+        field_cfg = None
+        for f in step.fields:
+            if f.field_id == field_id:
+                field_cfg = f
+                break
+
+        if not field_cfg or not field_cfg.otbiolab_template:
+            return
+
+        # Baue Template-Context
+        context = self._build_template_context(step)
+        context["field_id"] = field_id
+        context["attempt_number"] = attempt_idx + 1  # 1-based für Dateinamen
+
+        try:
+            filename = field_cfg.otbiolab_template.format(**context)
+        except KeyError as exc:
+            messagebox.showerror("Template Fehler", f"Platzhalter {exc} konnte nicht gefüllt werden.")
+            return
+
+        if not filename.lower().endswith(".otb4"):
+            filename += ".otb4"
+        target_path = (self.output_dir / filename).resolve()
+
+        # Kopiere in Zwischenablage
+        self.clipboard_clear()
+        self.clipboard_append(str(target_path))
+        self.update()
+        self.status_var.set(f"✓ Dateiname für Versuch {attempt_idx + 1} kopiert: {filename}")
 
     # Zusammenfassung/Export ------------------------------------------------------
     def _export_protocol(self) -> None:

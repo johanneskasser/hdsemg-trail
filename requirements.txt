@@ -1,0 +1,7 @@
+# HDsEMG Trail - Python Dependencies
+
+# GUI Framework (built-in with Python)
+# tkinter is included with standard Python installations
+
+# Windows Automation (für OTBioLab Dialog Integration)
+pywinauto>=0.6.8
