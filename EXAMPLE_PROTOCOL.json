@@ -1,0 +1,143 @@
+{
+  "protocol_version": "1.0",
+  "session": {
+    "started_at": "2025-12-16T15:15:04",
+    "ended_at": "2025-12-16T17:24:24",
+    "duration_seconds": 7760.0,
+    "duration_formatted": "02:09:20",
+    "timestamp": "20251216_151504"
+  },
+  "metadata": {
+    "pid": "1",
+    "mess_tag": "16.12.2025",
+    "session_type": "Day 2 - Intervention",
+    "randomization": "CON first",
+    "doms_score": "",
+    "notes_general": "Voller Messdurchlauf mit HP"
+  },
+  "declaration": {
+    "title": "HDsEMG Intervention Session",
+    "description": "Day 2 Intervention Protocol",
+    "declaration_file": "/path/to/config/intervention.json"
+  },
+  "output_directory": "/path/to/output",
+  "steps": [
+    {
+      "step_number": 1,
+      "step_id": "arrival_setup",
+      "title": "Ankunft & Setup",
+      "description": "Vorbereitung und Einrichtung",
+      "started_at": "2025-12-16T15:15:04",
+      "completed_at": "2025-12-16T15:43:25",
+      "duration_seconds": 1701.0,
+      "duration_formatted": "00:28:21",
+      "expected_duration_seconds": 1350,
+      "expected_duration_formatted": "00:22:30",
+      "fields": {
+        "body_height": {
+          "label": "Körpergröße (cm)",
+          "value": 180.0,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "body_mass": {
+          "label": "Körpermasse (kg)",
+          "value": 70.0,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "dominant_leg": {
+          "label": "Dominantes Bein",
+          "value": "rechts",
+          "type": "choice",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {
+        "signal_quality": {
+          "label": "Signal Qualitäts-Check",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "rms_quality": {
+                  "label": "RMS Durchschnittsqualität",
+                  "value": "9.2",
+                  "type": "float"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": "/path/to/output/PID1_20251216_151504_signal_quality_1.otb4"
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 3,
+      "step_id": "ft_block1",
+      "title": "Force-Tracking Block 1 (Baseline)",
+      "description": "Baseline Force Tracking",
+      "started_at": "2025-12-16T15:48:03",
+      "completed_at": "2025-12-16T16:02:07",
+      "duration_seconds": 844.0,
+      "duration_formatted": "00:14:04",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trapezoid_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "tracking_quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": "/path/to/output/PID1_20251216_151504_bl1_trap1.otb4"
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "tracking_quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": "/path/to/output/PID1_20251216_151504_bl1_trap2.otb4"
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    }
+  ]
+}

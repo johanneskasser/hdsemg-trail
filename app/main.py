@@ -599,12 +599,15 @@ class SessionApp(tk.Tk):
 
         button_row = ttk.Frame(frame)
         button_row.grid(row=4, column=0, sticky="ew", pady=(18, 0))
-        button_row.columnconfigure(1, weight=1)
+        button_row.columnconfigure(2, weight=1)
 
-        self.export_button = ttk.Button(button_row, text="Protokoll exportieren", command=self._export_protocol)
+        self.export_button = ttk.Button(button_row, text="Protokoll exportieren (TXT)", command=self._export_protocol)
         self.export_button.grid(row=0, column=0, padx=(0, 8))
 
-        ttk.Button(button_row, text="Neue Session", command=self._reset_to_start).grid(row=0, column=2)
+        self.export_json_button = ttk.Button(button_row, text="Protokoll exportieren (JSON)", command=self._export_protocol_json)
+        self.export_json_button.grid(row=0, column=1, padx=(0, 8))
+
+        ttk.Button(button_row, text="Neue Session", command=self._reset_to_start).grid(row=0, column=3)
 
     # Formular-Utilities ---------------------------------------------------------
     def _create_field_control(self, parent: ttk.Frame, config: FieldConfig) -> FieldControl:
@@ -1212,6 +1215,7 @@ class SessionApp(tk.Tk):
 
         # Automatisches Speichern des Protokolls und der Referenz-Datei
         self._auto_save_protocol(protocol_text)
+        self._auto_save_protocol_json()
         self._save_reference_file()
 
         self._show_frame("summary")
@@ -1584,6 +1588,24 @@ class SessionApp(tk.Tk):
         target_path.write_text(content, encoding="utf-8")
         messagebox.showinfo("Protokoll gespeichert", f"Protokoll gespeichert unter:\n{target_path}")
 
+    def _export_protocol_json(self) -> None:
+        """Exportiert das Protokoll als JSON-Datei."""
+        if not self.output_dir:
+            messagebox.showwarning("Kein Ordner", "Es wurde kein Zielordner ausgewählt.")
+            return
+        protocol_dir = self.output_dir / "protokolle"
+        protocol_dir.mkdir(parents=True, exist_ok=True)
+        pid = self.metadata_values.get("pid", "PID")
+        filename = f"{pid}_{self.session_timestamp}_protokoll.json"
+        target_path = protocol_dir / filename
+
+        try:
+            protocol_json = self._build_protocol_json()
+            target_path.write_text(json.dumps(protocol_json, ensure_ascii=False, indent=2), encoding="utf-8")
+            messagebox.showinfo("JSON-Protokoll gespeichert", f"JSON-Protokoll gespeichert unter:\n{target_path}")
+        except Exception as exc:
+            messagebox.showerror("Fehler", f"Fehler beim Speichern des JSON-Protokolls:\n{exc}")
+
     def _reset_to_start(self) -> None:
         if self._timer_after_id:
             self.after_cancel(self._timer_after_id)
@@ -1706,6 +1728,110 @@ class SessionApp(tk.Tk):
             print(f"INFO: Protokoll automatisch gespeichert: {target_path}")
         except Exception as exc:
             print(f"FEHLER: Automatisches Speichern des Protokolls fehlgeschlagen: {exc}")
+
+    def _build_protocol_json(self) -> Dict[str, Any]:
+        """Erstellt das Protokoll als JSON-Struktur."""
+        session_end_time = datetime.now()
+        total_duration = session_end_time - self.session_started_at if self.session_started_at else None
+
+        protocol_data = {
+            "protocol_version": "1.0",
+            "session": {
+                "started_at": self.session_started_at.isoformat() if self.session_started_at else None,
+                "ended_at": session_end_time.isoformat(),
+                "duration_seconds": total_duration.total_seconds() if total_duration else None,
+                "duration_formatted": seconds_to_clock(total_duration.total_seconds()) if total_duration else None,
+                "timestamp": self.session_timestamp,
+            },
+            "metadata": dict(self.metadata_values),
+            "declaration": {
+                "title": self.declaration.title if self.declaration else None,
+                "description": self.declaration.description if self.declaration else None,
+                "declaration_file": str(self.declaration_path) if self.declaration_path else None,
+            },
+            "output_directory": str(self.output_dir) if self.output_dir else None,
+            "steps": []
+        }
+
+        # Sammle alle Schritt-Daten
+        for idx, result in enumerate(self.step_results, start=1):
+            step_data = {
+                "step_number": idx,
+                "step_id": result.config.step_id,
+                "title": result.config.title,
+                "description": result.config.description,
+                "started_at": result.started_at.isoformat() if result.started_at else None,
+                "completed_at": result.completed_at.isoformat() if result.completed_at else None,
+                "duration_seconds": result.duration.total_seconds() if result.duration else None,
+                "duration_formatted": seconds_to_clock(result.duration.total_seconds()) if result.duration else None,
+                "expected_duration_seconds": result.config.expected_duration_seconds,
+                "expected_duration_formatted": seconds_to_clock(result.config.expected_duration_seconds) if result.config.expected_duration_seconds else None,
+                "fields": {},
+                "repeated_measurements": {},
+                "notes": result.notes,
+                "otbiolab_files": {
+                    "step_level": list(result.otbiolab_paths),  # Legacy
+                    "field_level": dict(result.field_otbiolab_files),
+                }
+            }
+
+            # Normale Felder
+            for field_cfg in result.config.fields:
+                if not field_cfg.repeated_measurement:
+                    step_data["fields"][field_cfg.field_id] = {
+                        "label": field_cfg.label,
+                        "value": result.values.get(field_cfg.field_id, ""),
+                        "type": field_cfg.kind,
+                        "otbiolab_files": result.field_otbiolab_files.get(field_cfg.field_id, [])
+                    }
+
+            # Wiederholbare Messungen
+            for field_cfg in result.config.fields:
+                if field_cfg.repeated_measurement and field_cfg.field_id in result.repeated_measurements:
+                    attempts = result.repeated_measurements[field_cfg.field_id]
+                    step_data["repeated_measurements"][field_cfg.field_id] = {
+                        "label": field_cfg.label,
+                        "attempts": []
+                    }
+
+                    for attempt_idx, attempt_data in enumerate(attempts, start=1):
+                        attempt_info = {
+                            "attempt_number": attempt_idx,
+                            "fields": {},
+                            "otbiolab_file": attempt_data.get("otbiolab_file", None)
+                        }
+
+                        for sub_field_cfg in field_cfg.repeated_fields:
+                            attempt_info["fields"][sub_field_cfg.field_id] = {
+                                "label": sub_field_cfg.label,
+                                "value": attempt_data.get(sub_field_cfg.field_id, ""),
+                                "type": sub_field_cfg.kind
+                            }
+
+                        step_data["repeated_measurements"][field_cfg.field_id]["attempts"].append(attempt_info)
+
+            protocol_data["steps"].append(step_data)
+
+        return protocol_data
+
+    def _auto_save_protocol_json(self) -> None:
+        """Automatisches Speichern des Protokolls als JSON nach Messungsabschluss."""
+        if not self.output_dir:
+            print("WARNUNG: Kein Ausgabeordner gesetzt - JSON-Protokoll wird nicht automatisch gespeichert.")
+            return
+
+        try:
+            protocol_dir = self.output_dir / "protokolle"
+            protocol_dir.mkdir(parents=True, exist_ok=True)
+            pid = self.metadata_values.get("pid", "PID")
+            filename = f"{pid}_{self.session_timestamp}_protokoll.json"
+            target_path = protocol_dir / filename
+
+            protocol_json = self._build_protocol_json()
+            target_path.write_text(json.dumps(protocol_json, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"INFO: JSON-Protokoll automatisch gespeichert: {target_path}")
+        except Exception as exc:
+            print(f"FEHLER: Automatisches Speichern des JSON-Protokolls fehlgeschlagen: {exc}")
 
     def _on_closing(self) -> None:
         """Handle window close event - zeige Warnung wenn Messung läuft."""

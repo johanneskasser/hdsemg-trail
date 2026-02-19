@@ -711,8 +711,8 @@
     {
       "id": "emg_ref_straps",
       "text": "EMG Referenz-Elektroden überprüfen und ggf. neu befeuchten.\n\nDie Ref-Straps trocknen während der Messung aus und müssen regelmäßig befeuchtet werden, um eine gute Signalqualität zu gewährleisten.",
-      "interval_minutes": 1,
-      "start_after_minutes": 0
+      "interval_minutes": 15,
+      "start_after_minutes": 15
     }
   ]
 }
