@@ -51,6 +51,54 @@
           "value": "rechts",
           "type": "choice",
           "otbiolab_files": []
+        },
+        "vm_grid_64_type": {
+          "label": "VM Grid 64-Kanal – Typ",
+          "value": "HD04MM1305",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vm_grid_64_orientation": {
+          "label": "VM Grid 64-Kanal – Konnektor-Orientierung\n(0 = proximal/Hüfte, 180 = distal/Knie)",
+          "value": "0",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vm_grid_32_type": {
+          "label": "VM Grid 32-Kanal – Typ",
+          "value": "HD10MM0804",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vm_grid_32_orientation": {
+          "label": "VM Grid 32-Kanal – Konnektor-Orientierung\n(0 = proximal/Hüfte, 180 = distal/Knie)",
+          "value": "180",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vl_grid_64_type": {
+          "label": "VL Grid 64-Kanal – Typ",
+          "value": "HD08MM1305",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vl_grid_64_orientation": {
+          "label": "VL Grid 64-Kanal – Konnektor-Orientierung\n(0 = proximal/Hüfte, 180 = distal/Knie)",
+          "value": "0",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vl_grid_32_type": {
+          "label": "VL Grid 32-Kanal – Typ",
+          "value": "HD05MM0804",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "vl_grid_32_orientation": {
+          "label": "VL Grid 32-Kanal – Konnektor-Orientierung\n(0 = proximal/Hüfte, 180 = distal/Knie)",
+          "value": "180",
+          "type": "choice",
+          "otbiolab_files": []
         }
       },
       "repeated_measurements": {
