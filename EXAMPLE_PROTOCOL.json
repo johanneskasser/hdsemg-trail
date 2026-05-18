@@ -1,60 +1,96 @@
 {
   "protocol_version": "1.0",
   "session": {
-    "started_at": "2025-12-16T15:15:04",
-    "ended_at": "2025-12-16T17:24:24",
-    "duration_seconds": 7760.0,
-    "duration_formatted": "02:09:20",
-    "timestamp": "20251216_151504"
+    "started_at": "2026-05-11T15:44:10.602370",
+    "ended_at": "2026-05-11T18:22:43.157803",
+    "duration_seconds": 9512.555433,
+    "duration_formatted": "02:38:32",
+    "timestamp": "20260511_154410"
   },
   "metadata": {
-    "pid": "1",
-    "mess_tag": "16.12.2025",
+    "pid": "65",
+    "mess_tag": "11.05.2026",
     "session_type": "Day 2 - Intervention",
     "randomization": "CON first",
-    "doms_score": "",
-    "notes_general": "Voller Messdurchlauf mit HP"
+    "doms_score": 1,
+    "notes_general": ""
   },
   "declaration": {
-    "title": "HDsEMG Intervention Session",
-    "description": "Day 2 Intervention Protocol",
-    "declaration_file": "/path/to/config/intervention.json"
+    "title": "HDsEMG Interventionssession",
+    "description": "Cross-Over Reliability und Interventions-Session (konzentrisches vs. exzentrisches Training)",
+    "declaration_file": "C:\\Users\\User\\OneDrive - FH Campus Wien\\Desktop\\hdsemg-trail\\config\\day2.json"
   },
-  "output_directory": "/path/to/output",
+  "output_directory": "C:\\Data_local\\MU_TRAIL_JK\\ID65\\T2",
   "steps": [
     {
       "step_number": 1,
       "step_id": "arrival_setup",
       "title": "Ankunft & Setup",
-      "description": "Vorbereitung und Einrichtung",
-      "started_at": "2025-12-16T15:15:04",
-      "completed_at": "2025-12-16T15:43:25",
-      "duration_seconds": 1701.0,
-      "duration_formatted": "00:28:21",
+      "description": "Consent, Anthropometrie, Baseline Soreness Check, Seat/Lever Adjustment, Elektroden-Platzierung",
+      "started_at": "2026-05-11T15:44:10.602504",
+      "completed_at": "2026-05-11T15:56:51.569963",
+      "duration_seconds": 760.967459,
+      "duration_formatted": "00:12:40",
       "expected_duration_seconds": 1350,
       "expected_duration_formatted": "00:22:30",
       "fields": {
         "body_height": {
           "label": "Körpergröße (cm)",
-          "value": 180.0,
+          "value": 188.0,
           "type": "float",
           "otbiolab_files": []
         },
         "body_mass": {
           "label": "Körpermasse (kg)",
-          "value": 70.0,
+          "value": 82.05,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "body_fat_mass": {
+          "label": "Körperfettanteil (% BW)",
+          "value": 16.2,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "body_muscle_mass": {
+          "label": "Körpermuskelanteil (% BW)",
+          "value": 39.3,
           "type": "float",
           "otbiolab_files": []
         },
         "dominant_leg": {
           "label": "Dominantes Bein",
-          "value": "rechts",
+          "value": "links",
           "type": "choice",
+          "otbiolab_files": []
+        },
+        "contrex_sitzwinkel": {
+          "label": "Contrex Sitzwinkel (Grad)",
+          "value": 75.0,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "contrex_sitzboden_laenge": {
+          "label": "Contrex Sitzboden Länge (mm)",
+          "value": 16.5,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "contrex_lever_position_height": {
+          "label": "Contrex Hebelarm Position Höhe (mm)",
+          "value": 3.0,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "contrex_lever_position_seat_position": {
+          "label": "Contrex Hebelarm Position entlang Sitzposition (mm)",
+          "value": 52.0,
+          "type": "float",
           "otbiolab_files": []
         },
         "vm_grid_64_type": {
           "label": "VM Grid 64-Kanal – Typ",
-          "value": "HD04MM1305",
+          "value": "HD08MM1305",
           "type": "choice",
           "otbiolab_files": []
         },
@@ -72,7 +108,7 @@
         },
         "vm_grid_32_orientation": {
           "label": "VM Grid 32-Kanal – Konnektor-Orientierung\n(0 = proximal/Hüfte, 180 = distal/Knie)",
-          "value": "180",
+          "value": "0",
           "type": "choice",
           "otbiolab_files": []
         },
@@ -102,15 +138,15 @@
         }
       },
       "repeated_measurements": {
-        "signal_quality": {
+        "signal_quality_check": {
           "label": "Signal Qualitäts-Check",
           "attempts": [
             {
               "attempt_number": 1,
               "fields": {
-                "rms_quality": {
+                "quality": {
                   "label": "RMS Durchschnittsqualität",
-                  "value": "9.2",
+                  "value": "",
                   "type": "float"
                 },
                 "notes": {
@@ -119,7 +155,23 @@
                   "type": "multiline"
                 }
               },
-              "otbiolab_file": "/path/to/output/PID1_20251216_151504_signal_quality_1.otb4"
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "RMS Durchschnittsqualität",
+                  "value": "",
+                  "type": "float"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
             }
           ]
         }
@@ -131,25 +183,69 @@
       }
     },
     {
+      "step_number": 2,
+      "step_id": "mvc_pre",
+      "title": "MVC (Pre-Intervention)",
+      "description": "Maximale willkürliche Kontraktion - 3 Versuche, bester Wert wird verwendet zur Normalisierung",
+      "started_at": "2026-05-11T15:56:51.569997",
+      "completed_at": "2026-05-11T16:02:12.029018",
+      "duration_seconds": 320.459021,
+      "duration_formatted": "00:05:20",
+      "expected_duration_seconds": 600,
+      "expected_duration_formatted": "00:10:00",
+      "fields": {
+        "mvc_trial1": {
+          "label": "MVC Versuch 1 (Nm)",
+          "value": 346.91359,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_trial2": {
+          "label": "MVC Versuch 2 (Nm)",
+          "value": 345.4673,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_trial3": {
+          "label": "MVC Versuch 3 (Nm)",
+          "value": 344.88849,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_best": {
+          "label": "MVC Best (Nm)",
+          "value": 346.91359,
+          "type": "float",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
       "step_number": 3,
       "step_id": "ft_block1",
       "title": "Force-Tracking Block 1 (Baseline)",
-      "description": "Baseline Force Tracking",
-      "started_at": "2025-12-16T15:48:03",
-      "completed_at": "2025-12-16T16:02:07",
-      "duration_seconds": 844.0,
-      "duration_formatted": "00:14:04",
+      "description": "Baseline Force-Tracking: Trapezoid & Triangular Ramps (30-40% MVC) zur Etablierung der Pre-Training Reliabilität",
+      "started_at": "2026-05-11T16:02:12.029054",
+      "completed_at": "2026-05-11T16:11:32.648476",
+      "duration_seconds": 560.619422,
+      "duration_formatted": "00:09:20",
       "expected_duration_seconds": 900,
       "expected_duration_formatted": "00:15:00",
       "fields": {},
       "repeated_measurements": {
-        "trapezoid_tracking": {
+        "trap_tracking": {
           "label": "Trapezoid Tracking",
           "attempts": [
             {
               "attempt_number": 1,
               "fields": {
-                "tracking_quality": {
+                "quality": {
                   "label": "Tracking-Qualität",
                   "value": "Sehr gut",
                   "type": "choice"
@@ -160,12 +256,65 @@
                   "type": "multiline"
                 }
               },
-              "otbiolab_file": "/path/to/output/PID1_20251216_151504_bl1_trap1.otb4"
+              "otbiolab_file": null
             },
             {
               "attempt_number": 2,
               "fields": {
-                "tracking_quality": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
                   "label": "Tracking-Qualität",
                   "value": "Gut",
                   "type": "choice"
@@ -176,7 +325,1027 @@
                   "type": "multiline"
                 }
               },
-              "otbiolab_file": "/path/to/output/PID1_20251216_151504_bl1_trap2.otb4"
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 4,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 4,
+      "step_id": "rest1",
+      "title": "REST 1",
+      "description": "Passive Ruhe (2-3 min) vor Pre-Interventions-Referenz-Tracking",
+      "started_at": "2026-05-11T16:11:56.240574",
+      "completed_at": "2026-05-11T16:14:35.260806",
+      "duration_seconds": 159.020232,
+      "duration_formatted": "00:02:39",
+      "expected_duration_seconds": 150,
+      "expected_duration_formatted": "00:02:30",
+      "fields": {},
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 5,
+      "step_id": "ft_block2",
+      "title": "Force-Tracking Block 2 (Pre-Intervention)",
+      "description": "Pre-Intervention Tracking nach Ruhe - dient als unmittelbare Baseline vor dem ersten Loading Block",
+      "started_at": "2026-05-11T16:14:35.260859",
+      "completed_at": "2026-05-11T16:24:07.059685",
+      "duration_seconds": 571.798826,
+      "duration_formatted": "00:09:31",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trap_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Befriedigend",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 4,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 6,
+      "step_id": "training_block1",
+      "title": "Training Block 1",
+      "description": "Erste Loading-Phase: 4×10 Repetitionen @45°/s. Kontraktionsmodus (CON oder ECC) gemäß Randomisierung",
+      "started_at": "2026-05-11T16:24:07.059724",
+      "completed_at": "2026-05-11T16:45:40.678781",
+      "duration_seconds": 1293.619057,
+      "duration_formatted": "00:21:33",
+      "expected_duration_seconds": 1200,
+      "expected_duration_formatted": "00:20:00",
+      "fields": {
+        "mode": {
+          "label": "Kontraktionsmodus",
+          "value": "Konzentrisch (CON)",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "sets_completed": {
+          "label": "Sätze abgeschlossen",
+          "value": 3,
+          "type": "integer",
+          "otbiolab_files": []
+        },
+        "reps_per_set": {
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "value": 10,
+          "type": "integer",
+          "otbiolab_files": []
+        },
+        "borg_score": {
+          "label": "Borg CR10 Anstrengung",
+          "value": 4,
+          "type": "integer",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 7,
+      "step_id": "ft_block3",
+      "title": "Force-Tracking Block 3 (Post-Training 1)",
+      "description": "Unmittelbares Post-Training Tracking zur Evaluation der kurzfristigen MU-Modulation nach dem ersten Loading Block",
+      "started_at": "2026-05-11T16:45:40.678812",
+      "completed_at": "2026-05-11T16:54:58.669299",
+      "duration_seconds": 557.990487,
+      "duration_formatted": "00:09:17",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trap_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Ausreichend",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 4,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Ausreichend",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 5,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 8,
+      "step_id": "washout",
+      "title": "WASHOUT",
+      "description": "Aktive Erholung (5-7 min Pause mit leichten Muskelbewegungen) vor Wechsel des Kontraktionsmodus",
+      "started_at": "2026-05-11T16:54:58.669336",
+      "completed_at": "2026-05-11T17:02:08.295038",
+      "duration_seconds": 429.625702,
+      "duration_formatted": "00:07:09",
+      "expected_duration_seconds": 360,
+      "expected_duration_formatted": "00:06:00",
+      "fields": {
+        "recovery_quality": {
+          "label": "Erholungsqualität",
+          "value": "Vollständig erholt",
+          "type": "choice",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {
+        "signal_quality_check": {
+          "label": "Signal Qualitäts-Check",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "RMS Durchschnittsqualität",
+                  "value": "",
+                  "type": "float"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 9,
+      "step_id": "ft_block4",
+      "title": "Force-Tracking Block 4 (Post-Washout)",
+      "description": "Tracking unmittelbar nach Washout zur Erfassung transienter Erholungseffekte vor der zweiten Intervention",
+      "started_at": "2026-05-11T17:02:08.295080",
+      "completed_at": "2026-05-11T17:11:35.440123",
+      "duration_seconds": 567.145043,
+      "duration_formatted": "00:09:27",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trap_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Befriedigend",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 4,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Befriedigend",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 5,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 10,
+      "step_id": "training_block2",
+      "title": "Training Block 2",
+      "description": "Zweite Loading-Phase: 4×10 Repetitionen @45°/s mit dem ANDEREN Kontraktionsmodus (counter-balanced)",
+      "started_at": "2026-05-11T17:11:35.440162",
+      "completed_at": "2026-05-11T17:18:07.411770",
+      "duration_seconds": 391.971608,
+      "duration_formatted": "00:06:31",
+      "expected_duration_seconds": 1200,
+      "expected_duration_formatted": "00:20:00",
+      "fields": {
+        "mode": {
+          "label": "Kontraktionsmodus",
+          "value": "Exzentrisch (ECC)",
+          "type": "choice",
+          "otbiolab_files": []
+        },
+        "sets_completed": {
+          "label": "Sätze abgeschlossen",
+          "value": 3,
+          "type": "integer",
+          "otbiolab_files": []
+        },
+        "reps_per_set": {
+          "label": "Wiederholungen pro Satz (Durchschnitt)",
+          "value": 10,
+          "type": "integer",
+          "otbiolab_files": []
+        },
+        "borg_score": {
+          "label": "Borg CR10 Anstrengung",
+          "value": 4,
+          "type": "integer",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 11,
+      "step_id": "ft_block5",
+      "title": "Force-Tracking Block 5 (Post-Training 2)",
+      "description": "Post-Training Tracking nach beiden Kontraktionsmodi zur Beurteilung kumulativer Adaptation und Reliabilität",
+      "started_at": "2026-05-11T17:18:07.411816",
+      "completed_at": "2026-05-11T17:25:07.494979",
+      "duration_seconds": 420.083163,
+      "duration_formatted": "00:07:00",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trap_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 12,
+      "step_id": "rest2",
+      "title": "REST 2",
+      "description": "Kurze Erholung (2-3 min) vor finalem MVC-Test",
+      "started_at": "2026-05-11T17:25:07.495024",
+      "completed_at": "2026-05-11T17:27:43.188783",
+      "duration_seconds": 155.693759,
+      "duration_formatted": "00:02:35",
+      "expected_duration_seconds": 150,
+      "expected_duration_formatted": "00:02:30",
+      "fields": {},
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 13,
+      "step_id": "ft_block6",
+      "title": "Force-Tracking Block 6 (Final)",
+      "description": "Finales Tracking nach Ruhe zur Sicherstellung stabiler Post-Interventions-Bedingungen vor maximalem Test",
+      "started_at": "2026-05-11T17:27:43.188831",
+      "completed_at": "2026-05-11T18:21:41.634564",
+      "duration_seconds": 3238.445733,
+      "duration_formatted": "00:53:58",
+      "expected_duration_seconds": 900,
+      "expected_duration_formatted": "00:15:00",
+      "fields": {},
+      "repeated_measurements": {
+        "trap_tracking": {
+          "label": "Trapezoid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        },
+        "pyramid_tracking": {
+          "label": "Pyramid Tracking",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 2,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            },
+            {
+              "attempt_number": 3,
+              "fields": {
+                "quality": {
+                  "label": "Tracking-Qualität",
+                  "value": "Sehr gut",
+                  "type": "choice"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
+            }
+          ]
+        }
+      },
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 14,
+      "step_id": "mvc_post",
+      "title": "MVC (Post-Intervention)",
+      "description": "Finale MVC-Serie (3 Versuche) zur Bestimmung der Post-Interventions-Maximalkraft und neuralen Drive-Änderungen",
+      "started_at": "2026-05-11T18:21:41.634607",
+      "completed_at": "2026-05-11T18:22:34.397489",
+      "duration_seconds": 52.762882,
+      "duration_formatted": "00:00:52",
+      "expected_duration_seconds": 600,
+      "expected_duration_formatted": "00:10:00",
+      "fields": {
+        "mvc_trial1": {
+          "label": "MVC Versuch 1 (Nm)",
+          "value": 343.0424,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_trial2": {
+          "label": "MVC Versuch 2 (Nm)",
+          "value": 343.16817,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_trial3": {
+          "label": "MVC Versuch 3 (Nm)",
+          "value": 343.73864,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_best": {
+          "label": "MVC Best (Nm)",
+          "value": 343.73864,
+          "type": "float",
+          "otbiolab_files": []
+        },
+        "mvc_change": {
+          "label": "MVC-Änderung (%)",
+          "value": "",
+          "type": "float",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {},
+      "notes": "",
+      "otbiolab_files": {
+        "step_level": [],
+        "field_level": {}
+      }
+    },
+    {
+      "step_number": 15,
+      "step_id": "debrief",
+      "title": "Debrief & Elektroden-Entfernung",
+      "description": "Abschlussgespräch, Feedback einholen, Elektroden entfernen",
+      "started_at": "2026-05-11T18:22:34.397523",
+      "completed_at": "2026-05-11T18:22:41.811669",
+      "duration_seconds": 7.414146,
+      "duration_formatted": "00:00:07",
+      "expected_duration_seconds": 600,
+      "expected_duration_formatted": "00:10:00",
+      "fields": {
+        "overall_comfort": {
+          "label": "Gesamter Komfort (1-10)",
+          "value": 9,
+          "type": "integer",
+          "otbiolab_files": []
+        },
+        "feedback": {
+          "label": "Feedback",
+          "value": "",
+          "type": "multiline",
+          "otbiolab_files": []
+        }
+      },
+      "repeated_measurements": {
+        "signal_quality_check": {
+          "label": "Signal Qualitäts-Check",
+          "attempts": [
+            {
+              "attempt_number": 1,
+              "fields": {
+                "quality": {
+                  "label": "RMS Durchschnittsqualität",
+                  "value": "",
+                  "type": "float"
+                },
+                "notes": {
+                  "label": "Notizen",
+                  "value": "",
+                  "type": "multiline"
+                }
+              },
+              "otbiolab_file": null
             }
           ]
         }
